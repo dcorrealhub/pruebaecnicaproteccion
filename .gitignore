@@ -1,0 +1,28 @@
+# Maven
+**/target/
+**/.mvn/wrapper/maven-wrapper.jar
+
+# Node
+**/node_modules/
+**/dist/
+**/.vite/
+
+# IDE
+**/.idea/
+**/.vscode/
+**/*.iml
+**/*.classpath
+**/*.project
+**/.settings/
+
+# Spring Boot
+**/application-local.properties
+**/*.log
+
+# Environment
+**/.env
+**/.env.*
+
+# OS
+.DS_Store
+Thumbs.db
