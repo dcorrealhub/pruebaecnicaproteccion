@@ -121,4 +121,13 @@ class AporteControllerIT {
                 .andExpect(jsonPath("$.totalAportado").value(0))
                 .andExpect(jsonPath("$.detalle").isArray());
     }
+
+    @Test
+    void getConsolidado_rangoInvertido_retorna422() throws Exception {
+        mockMvc.perform(get("/api/aportes/AF-TEST-005/consolidado")
+                        .param("periodoDesde", "2026-06")
+                        .param("periodoHasta", "2026-01"))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.codigo").value("RANGO_PERIODO_INVALIDO"));
+    }
 }

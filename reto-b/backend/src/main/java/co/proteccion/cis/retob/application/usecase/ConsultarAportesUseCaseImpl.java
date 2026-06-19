@@ -1,5 +1,6 @@
 package co.proteccion.cis.retob.application.usecase;
 
+import co.proteccion.cis.retob.domain.exception.ReglaNegocioException;
 import co.proteccion.cis.retob.domain.model.Aporte;
 import co.proteccion.cis.retob.domain.model.ConsolidadoAportes;
 import co.proteccion.cis.retob.domain.port.in.ConsultarAportesUseCase;
@@ -20,6 +21,13 @@ public class ConsultarAportesUseCaseImpl implements ConsultarAportesUseCase {
     @Transactional(readOnly = true)
     @Override
     public ConsolidadoAportes consultar(ConsultarAportesQuery query) {
+        if (query.periodoDesde().compareTo(query.periodoHasta()) > 0) {
+            throw new ReglaNegocioException(
+                    "RANGO_PERIODO_INVALIDO",
+                    "El periodo de inicio (" + query.periodoDesde() + ") no puede ser posterior al periodo de fin (" + query.periodoHasta() + ")"
+            );
+        }
+
         List<Aporte> aportes = aporteRepository.findByAfiliadoIdAndPeriodoBetween(
                 query.afiliadoId(), query.periodoDesde(), query.periodoHasta());
 
