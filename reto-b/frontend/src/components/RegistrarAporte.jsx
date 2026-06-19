@@ -1,7 +1,32 @@
 import { useRef, useState } from 'react'
+import { AlertCircle, CheckCircle2, TriangleAlert } from 'lucide-react'
 import { registrarAporte } from '../api/aportesApi'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 const HOY = new Date().toISOString().split('T')[0]
+
+const TITULOS_ERROR = {
+  TOPE_MENSUAL_EXCEDIDO: 'Tope mensual alcanzado',
+  MONTO_INVALIDO: 'Monto no válido',
+  CONFLICTO_CONCURRENCIA: 'Operación simultánea detectada',
+  VALIDACION_FALLIDA: 'Datos incorrectos',
+}
+
+function tituloError(codigo) {
+  return TITULOS_ERROR[codigo] ?? 'Error al registrar'
+}
 
 export default function RegistrarAporte() {
   const [form, setForm] = useState({ afiliadoId: '', monto: '', fecha: HOY, canal: 'APP_MOVIL' })
@@ -47,95 +72,129 @@ export default function RegistrarAporte() {
       setResultado(data)
       idempotenciaKey.current = crypto.randomUUID()
     } catch (err) {
-      setErrorServidor(err.message)
+      setErrorServidor({ titulo: tituloError(err.codigo), mensaje: err.message, codigo: err.codigo })
     } finally {
       setCargando(false)
     }
   }
 
   return (
-    <div className="card">
-      <h2 className="card-title">Registrar aporte</h2>
+    <Card>
+      <CardHeader>
+        <CardTitle>Registrar aporte</CardTitle>
+        <CardDescription>
+          Ingresá los datos del aporte al fondo de inversión voluntaria. Usá IDs sintéticos (ej. AF-001).
+        </CardDescription>
+      </CardHeader>
 
-      <form onSubmit={handleSubmit} noValidate>
-        <div className="form-grid">
-          <div className="form-field">
-            <label className="form-label" htmlFor="afiliadoId">ID Afiliado (sintético)</label>
-            <input
-              id="afiliadoId"
-              className={`form-input${errores.afiliadoId ? ' error' : ''}`}
-              placeholder="AF-001"
-              data-testid="input-afiliado"
-              {...campo('afiliadoId')}
-            />
-            {errores.afiliadoId && <span className="field-error">{errores.afiliadoId}</span>}
-          </div>
-
-          <div className="form-field">
-            <label className="form-label" htmlFor="monto">Monto (COP)</label>
-            <input
-              id="monto"
-              type="number"
-              min="0.01"
-              step="0.01"
-              className={`form-input${errores.monto ? ' error' : ''}`}
-              placeholder="100000"
-              data-testid="input-monto"
-              {...campo('monto')}
-            />
-            {errores.monto && <span className="field-error">{errores.monto}</span>}
-          </div>
-
-          <div className="form-field">
-            <label className="form-label" htmlFor="fecha">Fecha del aporte</label>
-            <input
-              id="fecha"
-              type="date"
-              max={HOY}
-              className={`form-input${errores.fecha ? ' error' : ''}`}
-              data-testid="input-fecha"
-              {...campo('fecha')}
-            />
-            {errores.fecha && <span className="field-error">{errores.fecha}</span>}
-          </div>
-
-          <div className="form-field">
-            <label className="form-label" htmlFor="canal">Canal de origen</label>
-            <select
-              id="canal"
-              className="form-select"
-              data-testid="select-canal"
-              {...campo('canal')}
-            >
-              <option value="APP_MOVIL">App móvil</option>
-              <option value="WEB">Web</option>
-              <option value="SUCURSAL">Sucursal</option>
-            </select>
-          </div>
-
-          <div className="form-field full-width" style={{ marginTop: 4 }}>
-            <button type="submit" className="btn btn-primary" disabled={cargando} data-testid="btn-registrar">
-              {cargando ? 'Registrando…' : 'Registrar aporte'}
-            </button>
-          </div>
-        </div>
-      </form>
-
-      {errorServidor && (
-        <div className="alert alert-error" role="alert">{errorServidor}</div>
-      )}
-
-      {resultado && (
-        <div className="alert alert-success" role="status">
-          Aporte registrado correctamente — Periodo: <strong>{resultado.periodo}</strong>
-          {resultado.marcadaRevision && (
-            <div className="alert alert-warning">
-              <span className="badge-revision">⚠ Requiere revisión</span>
-              {' '}Este aporte superó el umbral y quedó marcado para revisión por el área de cumplimiento.
+      <CardContent>
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="afiliadoId">ID Afiliado (sintético)</Label>
+              <Input
+                id="afiliadoId"
+                placeholder="AF-001"
+                data-testid="input-afiliado"
+                className={errores.afiliadoId ? 'border-destructive focus-visible:ring-destructive' : ''}
+                {...campo('afiliadoId')}
+              />
+              {errores.afiliadoId && (
+                <p className="text-xs text-destructive">{errores.afiliadoId}</p>
+              )}
             </div>
-          )}
-        </div>
-      )}
-    </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="monto">Monto (COP)</Label>
+              <Input
+                id="monto"
+                type="number"
+                min="0.01"
+                step="0.01"
+                placeholder="100000"
+                data-testid="input-monto"
+                className={errores.monto ? 'border-destructive focus-visible:ring-destructive' : ''}
+                {...campo('monto')}
+              />
+              {errores.monto && (
+                <p className="text-xs text-destructive">{errores.monto}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="fecha">Fecha del aporte</Label>
+              <Input
+                id="fecha"
+                type="date"
+                max={HOY}
+                data-testid="input-fecha"
+                className={errores.fecha ? 'border-destructive focus-visible:ring-destructive' : ''}
+                {...campo('fecha')}
+              />
+              {errores.fecha && (
+                <p className="text-xs text-destructive">{errores.fecha}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="canal">Canal de origen</Label>
+              <Select
+                value={form.canal}
+                onValueChange={val => setForm(f => ({ ...f, canal: val }))}
+              >
+                <SelectTrigger id="canal" data-testid="select-canal">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="APP_MOVIL">App móvil</SelectItem>
+                  <SelectItem value="WEB">Web</SelectItem>
+                  <SelectItem value="SUCURSAL">Sucursal</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <Button type="submit" disabled={cargando} data-testid="btn-registrar" className="w-full sm:w-auto">
+            {cargando ? 'Registrando…' : 'Registrar aporte'}
+          </Button>
+        </form>
+
+        {errorServidor && (
+          <Alert variant="destructive" className="mt-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>{errorServidor.titulo}</AlertTitle>
+            <AlertDescription>
+              {errorServidor.mensaje}
+              {errorServidor.codigo === 'CONFLICTO_CONCURRENCIA' && (
+                <p className="mt-1 font-medium">Por favor intentá de nuevo.</p>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {resultado && (
+          <Alert variant="success" className="mt-6">
+            <CheckCircle2 className="h-4 w-4" />
+            <AlertTitle>Aporte registrado correctamente</AlertTitle>
+            <AlertDescription className="space-y-2">
+              <p>
+                Periodo: <strong>{resultado.periodo}</strong>
+              </p>
+              {resultado.marcadaRevision && (
+                <div className="flex items-start gap-2 rounded-md border border-orange-200 bg-orange-50 p-3">
+                  <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
+                  <div>
+                    <p className="font-medium text-orange-800">Requiere revisión por cumplimiento</p>
+                    <p className="text-sm text-orange-700">
+                      El monto superó el umbral configurado. El área de cumplimiento debe revisar este aporte.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+      </CardContent>
+    </Card>
   )
 }
