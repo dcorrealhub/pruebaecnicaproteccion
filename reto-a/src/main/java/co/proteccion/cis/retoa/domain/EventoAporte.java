@@ -1,14 +1,17 @@
 package co.proteccion.cis.retoa.domain;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "evento_aporte")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 public class EventoAporte {
 
@@ -18,7 +21,8 @@ public class EventoAporte {
 
     private String afiliadoId;
 
-    private double monto;
+    @Column(precision = 19, scale = 2)
+    private BigDecimal monto;
 
     private String tipo;
 

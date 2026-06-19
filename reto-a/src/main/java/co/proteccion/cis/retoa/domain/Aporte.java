@@ -1,15 +1,18 @@
 package co.proteccion.cis.retoa.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "aporte")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Aporte {
@@ -21,7 +24,8 @@ public class Aporte {
     private String afiliadoId;
 
     // Representa el monto del aporte en pesos colombianos
-    private double monto;
+    @Column(precision = 19, scale = 2)
+    private BigDecimal monto;
 
     private LocalDate fecha;
 
