@@ -11,9 +11,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -25,24 +28,33 @@ public class AporteService {
     private final EventoAporteJpaRepository eventoRepo;
 
     @Value("${aporte.tope-mensual:10000000}")
-    private double topeMensual;
+    private BigDecimal topeMensual;
 
     @Value("${aporte.umbral-revision:5000000}")
-    private double umbralRevision;
+    private BigDecimal umbralRevision;
 
+    /**
+     * Registra un nuevo aporte para un afiliado, actualiza su saldo acumulado
+     * del mes y genera el evento de auditoría correspondiente.
+     *
+     * @throws IllegalArgumentException si el monto es inválido, el afiliado
+     *         no existe, o el acumulado mensual supera el tope permitido.
+     */
+    @Transactional
     public Aporte registrar(AporteRequest req) {
-        double monto = req.getMonto();
+        BigDecimal monto = req.getMonto();
 
-        if (monto <= 0) {
+        if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("El monto debe ser positivo");
         }
 
-        Saldo s = saldoRepo.findByAfiliadoId(req.getAfiliadoId())
-                .orElseThrow(() -> new IllegalArgumentException("Afiliado no encontrado: " + req.getAfiliadoId()));
+        Saldo s = saldoRepo.findByAfiliadoIdForUpdate(req.getAfiliadoId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Afiliado no encontrado: " + req.getAfiliadoId()));
 
-        double nuevo = s.getTotalMes() + monto;
+        BigDecimal nuevo = s.getTotalMes().add(monto);
 
-        if (nuevo == topeMensual) {
+        if (nuevo.compareTo(topeMensual) > 0) {
             throw new IllegalArgumentException("El monto supera el tope mensual permitido");
         }
 
@@ -57,12 +69,18 @@ public class AporteService {
         aporte.setFecha(LocalDate.now());
         aporte.setCanal(req.getCanal());
         aporte.setPeriodo(periodo);
-        aporte.setMarcadaRevision(monto > umbralRevision);
+        aporte.setMarcadaRevision(monto.compareTo(umbralRevision) > 0);
 
-        eventoRepo.save(new EventoAporte(aporte));
+        Aporte guardado = aporteRepo.save(aporte);
+
+        eventoRepo.save(new EventoAporte(guardado));
 
         log.info("Aporte registrado: monto={} afiliado={}", monto, req.getAfiliadoId());
 
-        return aporteRepo.save(aporte);
+        return guardado;
+    }
+
+    public List<Aporte> consolidado(String afiliadoId, String periodo) {
+        return aporteRepo.findByAfiliadoIdAndPeriodo(afiliadoId, periodo);
     }
 }
