@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public record RegistrarAporteRequest(
 
@@ -15,6 +16,9 @@ public record RegistrarAporteRequest(
         @NotNull(message = "El monto es obligatorio")
         @DecimalMin(value = "0.01", message = "El monto debe ser mayor a cero")
         BigDecimal monto,
+
+        @NotNull(message = "La fecha del aporte es obligatoria")
+        LocalDate fecha,
 
         @NotBlank(message = "El canal es obligatorio")
         @Pattern(regexp = "APP_MOVIL|WEB|SUCURSAL",

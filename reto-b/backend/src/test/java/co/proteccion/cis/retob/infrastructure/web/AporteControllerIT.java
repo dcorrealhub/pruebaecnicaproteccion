@@ -38,6 +38,7 @@ class AporteControllerIT {
                 {
                   "afiliadoId": "AF-001",
                   "monto": 1000000,
+                  "fecha": "2026-06-15",
                   "canal": "WEB",
                   "idempotenciaKey": "%s"
                 }
@@ -59,6 +60,7 @@ class AporteControllerIT {
                 {
                   "afiliadoId": "AF-002",
                   "monto": 500000,
+                  "fecha": "2026-06-15",
                   "canal": "APP_MOVIL",
                   "idempotenciaKey": "%s"
                 }
@@ -152,6 +154,7 @@ class AporteControllerIT {
                 {
                   "afiliadoId": "AF-005",
                   "monto": 100000,
+                  "fecha": "2026-06-15",
                   "canal": "CANAL_INEXISTENTE",
                   "idempotenciaKey": "%s"
                 }
@@ -162,6 +165,43 @@ class AporteControllerIT {
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.canal").exists());
+    }
+
+    @Test
+    void registrarAporte_fechaFutura_retorna422() throws Exception {
+        String body = """
+                {
+                  "afiliadoId": "AF-006",
+                  "monto": 100000,
+                  "fecha": "2099-01-01",
+                  "canal": "WEB",
+                  "idempotenciaKey": "%s"
+                }
+                """.formatted(UUID.randomUUID());
+
+        mockMvc.perform(post("/api/aportes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.mensaje").exists());
+    }
+
+    @Test
+    void registrarAporte_sinFecha_retorna400() throws Exception {
+        String body = """
+                {
+                  "afiliadoId": "AF-007",
+                  "monto": 100000,
+                  "canal": "WEB",
+                  "idempotenciaKey": "%s"
+                }
+                """.formatted(UUID.randomUUID());
+
+        mockMvc.perform(post("/api/aportes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fecha").exists());
     }
 
     @Test
@@ -189,6 +229,7 @@ class AporteControllerIT {
                 {
                   "afiliadoId": "%s",
                   "monto": %s,
+                  "fecha": "2026-06-15",
                   "canal": "WEB",
                   "idempotenciaKey": "%s"
                 }

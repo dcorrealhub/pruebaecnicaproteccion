@@ -2,7 +2,7 @@ const BASE_URL = '/api/aportes'
 
 /**
  * Registra un aporte voluntario.
- * @param {{ afiliadoId: string, monto: number, canal: string, idempotenciaKey: string }} data
+ * @param {{ afiliadoId: string, monto: number, fecha: string, canal: string, idempotenciaKey: string }} data
  * @returns {Promise<object>} aporte creado
  */
 export async function registrarAporte(data) {

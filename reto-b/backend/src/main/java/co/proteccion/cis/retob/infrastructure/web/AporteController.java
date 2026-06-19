@@ -29,6 +29,7 @@ public class AporteController {
         var command = new RegistrarAporteCommand(
                 req.afiliadoId(),
                 req.monto(),
+                req.fecha(),
                 req.canal(),
                 req.idempotenciaKey()
         );

@@ -37,8 +37,13 @@ public class RegistrarAporteUseCaseImpl implements RegistrarAporteUseCase {
             return existente.get();
         }
 
-        LocalDate hoy = LocalDate.now(clock);
-        String periodo = hoy.format(PERIODO_FMT);
+        // La fecha del aporte la provee el cliente; no se admiten aportes con fecha futura
+        LocalDate fecha = command.fecha();
+        if (fecha.isAfter(LocalDate.now(clock))) {
+            throw new ReglaNegocioException("La fecha del aporte no puede ser futura.");
+        }
+        // El periodo del tope mensual se deriva de la fecha del aporte (no de la fecha actual)
+        String periodo = fecha.format(PERIODO_FMT);
 
         // 2. Verificar tope mensual (get-or-init del saldo del mes)
         SaldoMensual saldo = saldoRepository.findByAfiliadoIdAndMes(command.afiliadoId(), periodo)
@@ -56,7 +61,7 @@ public class RegistrarAporteUseCaseImpl implements RegistrarAporteUseCase {
         boolean marcadaRevision = command.monto().compareTo(limites.umbralRevision()) > 0;
 
         // 4. Persistir el aporte
-        Aporte nuevo = new Aporte(null, command.afiliadoId(), command.monto(), hoy,
+        Aporte nuevo = new Aporte(null, command.afiliadoId(), command.monto(), fecha,
                 command.canal(), periodo, marcadaRevision, command.idempotenciaKey());
         Aporte persistido = aporteRepository.guardar(nuevo);
 

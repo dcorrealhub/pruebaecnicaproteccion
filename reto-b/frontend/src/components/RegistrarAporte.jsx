@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { registrarAporte } from '../api/aportesApi'
 
+const HOY = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
+
 export default function RegistrarAporte() {
-  const [form, setForm] = useState({ afiliadoId: '', monto: '', canal: 'APP_MOVIL' })
+  const [form, setForm] = useState({ afiliadoId: '', monto: '', fecha: HOY, canal: 'APP_MOVIL' })
   const [resultado, setResultado] = useState(null)
   const [error, setError] = useState(null)
   const [cargando, setCargando] = useState(false)
@@ -15,6 +17,11 @@ export default function RegistrarAporte() {
     const monto = parseFloat(form.monto)
     if (!monto || monto <= 0) {
       setError('El monto debe ser mayor a cero.')
+      return
+    }
+
+    if (form.fecha > HOY) {
+      setError('La fecha del aporte no puede ser futura.')
       return
     }
 
@@ -57,6 +64,18 @@ export default function RegistrarAporte() {
             step="0.01"
             value={form.monto}
             onChange={e => setForm(f => ({ ...f, monto: e.target.value }))}
+            required
+            style={{ display: 'block', width: '100%', marginTop: 4 }}
+          />
+        </label>
+
+        <label>
+          Fecha del aporte
+          <input
+            type="date"
+            max={HOY}
+            value={form.fecha}
+            onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))}
             required
             style={{ display: 'block', width: '100%', marginTop: 4 }}
           />
