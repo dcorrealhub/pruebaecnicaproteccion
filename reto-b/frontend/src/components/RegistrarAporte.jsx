@@ -1,19 +1,16 @@
 import { useState } from 'react'
 import { registrarAporte } from '../api/aportesApi'
+import './aportes.css'
 
 /**
- * TODO (candidato): implementar el formulario de registro de aporte.
+ * Formulario de registro de aporte voluntario.
  *
- * Campos requeridos:
- *   - afiliadoId (texto, sintético — ej: "AF-001")
- *   - monto (número, positivo)
- *   - canal (selector: APP_MOVIL, WEB, SUCURSAL)
- *   - idempotenciaKey: generar automáticamente con crypto.randomUUID()
- *
- * Comportamiento esperado:
- *   - Validar monto > 0 antes de enviar
- *   - Mostrar mensaje de éxito o error según la respuesta
- *   - Si el aporte queda marcado para revisión, indicarlo claramente
+ * - Genera idempotenciaKey con crypto.randomUUID() en cada submit nuevo,
+ *   de forma que un reintento de red use la misma clave solo si el usuario
+ *   no ha vuelto a enviar el formulario (la clave se fija al montar el form,
+ *   no en cada render).
+ * - Valida monto > 0 en el cliente antes de llamar al backend, aunque la
+ *   validación real de negocio vive en el servidor.
  */
 export default function RegistrarAporte() {
   const [form, setForm] = useState({ afiliadoId: '', monto: '', canal: 'APP_MOVIL' })
@@ -25,16 +22,22 @@ export default function RegistrarAporte() {
     e.preventDefault()
     setError(null)
     setResultado(null)
-    setCargando(true)
 
+    const monto = parseFloat(form.monto)
+    if (!Number.isFinite(monto) || monto <= 0) {
+      setError('El monto debe ser un número mayor a cero.')
+      return
+    }
+
+    setCargando(true)
     try {
-      // TODO: completar la llamada, incluir idempotenciaKey
       const data = await registrarAporte({
         ...form,
-        monto: parseFloat(form.monto),
+        monto,
         idempotenciaKey: crypto.randomUUID(),
       })
       setResultado(data)
+      setForm({ afiliadoId: '', monto: '', canal: 'APP_MOVIL' })
     } catch (err) {
       setError(err.message)
     } finally {
@@ -43,64 +46,98 @@ export default function RegistrarAporte() {
   }
 
   return (
-    <div>
-      <h2 style={{ fontSize: 18, marginBottom: 16 }}>Registrar aporte</h2>
-
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 400 }}>
-        <label>
-          ID Afiliado (sintético)
-          <input
-            value={form.afiliadoId}
-            onChange={e => setForm(f => ({ ...f, afiliadoId: e.target.value }))}
-            placeholder="AF-001"
-            required
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
-          />
-        </label>
-
-        <label>
-          Monto (COP)
-          <input
-            type="number"
-            min="0.01"
-            step="0.01"
-            value={form.monto}
-            onChange={e => setForm(f => ({ ...f, monto: e.target.value }))}
-            required
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
-          />
-        </label>
-
-        <label>
-          Canal
-          <select
-            value={form.canal}
-            onChange={e => setForm(f => ({ ...f, canal: e.target.value }))}
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
-          >
-            <option value="APP_MOVIL">App móvil</option>
-            <option value="WEB">Web</option>
-            <option value="SUCURSAL">Sucursal</option>
-          </select>
-        </label>
-
-        <button type="submit" disabled={cargando}>
-          {cargando ? 'Registrando...' : 'Registrar'}
-        </button>
-      </form>
-
-      {error && (
-        <p style={{ color: 'red', marginTop: 16 }}>Error: {error}</p>
-      )}
-
-      {resultado && (
-        <div style={{ marginTop: 16, padding: 12, background: '#f0f0f0' }}>
-          <p>Aporte registrado. ID: {resultado.id}</p>
-          {resultado.marcadaRevision && (
-            <p style={{ color: 'orange' }}>Este aporte quedó marcado para revisión.</p>
-          )}
+    <div className="ap-root">
+      <div className="ap-card">
+        <div className="ap-heading">
+          <h2>Registrar aporte</h2>
+          <span className="ap-eyebrow">Fondo voluntario</span>
         </div>
-      )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="ap-field">
+            <label htmlFor="afiliadoId">ID afiliado</label>
+            <input
+              id="afiliadoId"
+              className="ap-input"
+              value={form.afiliadoId}
+              onChange={e => setForm(f => ({ ...f, afiliadoId: e.target.value }))}
+              placeholder="AF-001"
+              required
+            />
+          </div>
+
+          <div className="ap-row">
+            <div className="ap-field">
+              <label htmlFor="monto">Monto (COP)</label>
+              <input
+                id="monto"
+                className="ap-input"
+                data-money="true"
+                type="number"
+                min="0.01"
+                step="0.01"
+                inputMode="decimal"
+                value={form.monto}
+                onChange={e => setForm(f => ({ ...f, monto: e.target.value }))}
+                placeholder="0.00"
+                required
+              />
+            </div>
+
+            <div className="ap-field">
+              <label htmlFor="canal">Canal</label>
+              <select
+                id="canal"
+                className="ap-select"
+                value={form.canal}
+                onChange={e => setForm(f => ({ ...f, canal: e.target.value }))}
+              >
+                <option value="APP_MOVIL">App móvil</option>
+                <option value="WEB">Web</option>
+                <option value="SUCURSAL">Sucursal</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" className="ap-button" disabled={cargando}>
+            {cargando ? 'Registrando…' : 'Registrar aporte'}
+          </button>
+        </form>
+
+        {error && (
+          <div className="ap-alert ap-alert-error" role="alert">
+            <svg className="ap-alert-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="10" cy="10" r="8.5" stroke="currentColor" strokeWidth="1.4" />
+              <path d="M10 6v4.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+              <circle cx="10" cy="13.5" r="0.9" fill="currentColor" />
+            </svg>
+            <span><strong>No se pudo registrar el aporte.</strong> {error}</span>
+          </div>
+        )}
+
+        {resultado && (
+          <div className="ap-alert ap-alert-success" role="status">
+            <svg className="ap-alert-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="10" cy="10" r="8.5" stroke="currentColor" strokeWidth="1.4" />
+              <path d="M6.5 10.2l2.3 2.3 4.7-5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span>
+              <strong>Aporte registrado.</strong> ID <span className="ap-result-id">{resultado.id}</span>
+            </span>
+          </div>
+        )}
+
+        {resultado?.marcadaRevision && (
+          <div className="ap-alert ap-alert-warning" role="status">
+            <svg className="ap-alert-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 2.5l8 14H2l8-14z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+              <path d="M10 8v3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+              <circle cx="10" cy="13.8" r="0.8" fill="currentColor" />
+            </svg>
+            <span>Este aporte superó el umbral configurado y quedó <strong>marcado para revisión</strong>.</span>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

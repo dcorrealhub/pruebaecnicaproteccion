@@ -1,0 +1,338 @@
+/* ============================================================
+   Tokens de diseño — módulo de aportes voluntarios
+   Paleta sobria de back-office financiero: el dato es el protagonista,
+   el color se reserva para estados que requieren atención.
+   ============================================================ */
+
+:root {
+  --ap-bg: #f7f6f3;
+  --ap-surface: #ffffff;
+  --ap-border: #e2e0da;
+  --ap-border-strong: #c9c6bc;
+
+  --ap-text: #1f1d1a;
+  --ap-text-muted: #6b6862;
+  --ap-text-faint: #9c988f;
+
+  --ap-accent: #1d4d3e;
+  --ap-accent-soft: #e8f0ec;
+
+  --ap-success: #1d6b42;
+  --ap-success-bg: #e8f3eb;
+  --ap-success-border: #b6dcc3;
+
+  --ap-error: #9c2b2b;
+  --ap-error-bg: #fbeded;
+  --ap-error-border: #e8bcbc;
+
+  --ap-warning: #92590a;
+  --ap-warning-bg: #fbf1de;
+  --ap-warning-border: #ecd6a3;
+
+  --ap-radius-sm: 4px;
+  --ap-radius-md: 8px;
+
+  --ap-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --ap-font-mono: "JetBrains Mono", "SF Mono", Consolas, "Roboto Mono", monospace;
+}
+
+.ap-root {
+  font-family: var(--ap-font-sans);
+  color: var(--ap-text);
+  max-width: 640px;
+}
+
+.ap-card {
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-border);
+  border-radius: var(--ap-radius-md);
+  padding: 24px 28px;
+}
+
+.ap-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 20px;
+}
+
+.ap-heading h2 {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--ap-text);
+}
+
+.ap-heading .ap-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ap-text-faint);
+}
+
+/* --- Formulario --- */
+
+.ap-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.ap-field label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ap-text-muted);
+  letter-spacing: 0.01em;
+}
+
+.ap-field .ap-hint {
+  font-size: 11.5px;
+  color: var(--ap-text-faint);
+  font-weight: 400;
+  margin-left: 6px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.ap-input,
+.ap-select {
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--ap-border-strong);
+  border-radius: var(--ap-radius-sm);
+  background: var(--ap-surface);
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--ap-text);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.ap-input::placeholder {
+  color: var(--ap-text-faint);
+}
+
+.ap-input:focus,
+.ap-select:focus {
+  outline: none;
+  border-color: var(--ap-accent);
+  box-shadow: 0 0 0 3px var(--ap-accent-soft);
+}
+
+.ap-input[data-money="true"] {
+  font-family: var(--ap-font-mono);
+  font-weight: 500;
+}
+
+.ap-row {
+  display: flex;
+  gap: 12px;
+}
+
+.ap-row > .ap-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.ap-button {
+  height: 40px;
+  padding: 0 20px;
+  border: none;
+  border-radius: var(--ap-radius-sm);
+  background: var(--ap-accent);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.12s ease, transform 0.05s ease;
+}
+
+.ap-button:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.ap-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.ap-button:disabled {
+  background: var(--ap-border-strong);
+  cursor: not-allowed;
+}
+
+.ap-button-secondary {
+  background: var(--ap-surface);
+  color: var(--ap-text);
+  border: 1px solid var(--ap-border-strong);
+}
+
+/* --- Mensajes de estado --- */
+
+.ap-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--ap-radius-sm);
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin-top: 16px;
+}
+
+.ap-alert-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+}
+
+.ap-alert-error {
+  background: var(--ap-error-bg);
+  border: 1px solid var(--ap-error-border);
+  color: var(--ap-error);
+}
+
+.ap-alert-success {
+  background: var(--ap-success-bg);
+  border: 1px solid var(--ap-success-border);
+  color: var(--ap-success);
+}
+
+.ap-alert-warning {
+  background: var(--ap-warning-bg);
+  border: 1px solid var(--ap-warning-border);
+  color: var(--ap-warning);
+}
+
+.ap-alert strong {
+  font-weight: 600;
+}
+
+.ap-result-id {
+  font-family: var(--ap-font-mono);
+  font-size: 12.5px;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* --- Consolidado --- */
+
+.ap-filters {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.ap-filters .ap-field {
+  margin-bottom: 0;
+}
+
+.ap-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  background: var(--ap-accent-soft);
+  border: 1px solid var(--ap-border);
+  border-radius: var(--ap-radius-sm);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.ap-summary-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ap-text-muted);
+}
+
+.ap-summary-value {
+  font-family: var(--ap-font-mono);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ap-accent);
+  letter-spacing: -0.01em;
+}
+
+.ap-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.ap-table thead th {
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ap-text-faint);
+  border-bottom: 1px solid var(--ap-border-strong);
+}
+
+.ap-table thead th.ap-col-monto {
+  text-align: right;
+}
+
+.ap-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--ap-border);
+  color: var(--ap-text);
+}
+
+.ap-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.ap-table tbody tr.ap-row-revision {
+  background: var(--ap-warning-bg);
+}
+
+.ap-col-monto {
+  text-align: right;
+  font-family: var(--ap-font-mono);
+  font-weight: 500;
+}
+
+.ap-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 100px;
+}
+
+.ap-badge-revision {
+  background: var(--ap-warning-bg);
+  color: var(--ap-warning);
+  border: 1px solid var(--ap-warning-border);
+}
+
+.ap-badge-ok {
+  color: var(--ap-text-faint);
+  font-weight: 400;
+}
+
+.ap-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--ap-text-faint);
+  font-size: 13.5px;
+}
+
+@media (max-width: 480px) {
+  .ap-row,
+  .ap-filters {
+    flex-direction: column;
+  }
+}
