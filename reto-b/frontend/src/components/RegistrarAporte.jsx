@@ -1,20 +1,6 @@
 import { useState } from 'react'
 import { registrarAporte } from '../api/aportesApi'
 
-/**
- * TODO (candidato): implementar el formulario de registro de aporte.
- *
- * Campos requeridos:
- *   - afiliadoId (texto, sintético — ej: "AF-001")
- *   - monto (número, positivo)
- *   - canal (selector: APP_MOVIL, WEB, SUCURSAL)
- *   - idempotenciaKey: generar automáticamente con crypto.randomUUID()
- *
- * Comportamiento esperado:
- *   - Validar monto > 0 antes de enviar
- *   - Mostrar mensaje de éxito o error según la respuesta
- *   - Si el aporte queda marcado para revisión, indicarlo claramente
- */
 export default function RegistrarAporte() {
   const [form, setForm] = useState({ afiliadoId: '', monto: '', canal: 'APP_MOVIL' })
   const [resultado, setResultado] = useState(null)
@@ -25,13 +11,18 @@ export default function RegistrarAporte() {
     e.preventDefault()
     setError(null)
     setResultado(null)
-    setCargando(true)
 
+    const monto = parseFloat(form.monto)
+    if (!monto || monto <= 0) {
+      setError('El monto debe ser mayor a cero.')
+      return
+    }
+
+    setCargando(true)
     try {
-      // TODO: completar la llamada, incluir idempotenciaKey
       const data = await registrarAporte({
         ...form,
-        monto: parseFloat(form.monto),
+        monto,
         idempotenciaKey: crypto.randomUUID(),
       })
       setResultado(data)

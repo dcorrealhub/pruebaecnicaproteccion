@@ -6,9 +6,21 @@ const BASE_URL = '/api/aportes'
  * @returns {Promise<object>} aporte creado
  */
 export async function registrarAporte(data) {
-  // TODO: implementar con fetch
-  // Recuerda: idempotenciaKey debe ser generado por el cliente (ej: crypto.randomUUID())
-  throw new Error('registrarAporte: pendiente de implementación')
+  const res = await fetch(BASE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}))
+    const mensaje = error.mensaje
+      || Object.values(error).join(', ')
+      || `Error ${res.status}`
+    throw new Error(mensaje)
+  }
+
+  return res.json()
 }
 
 /**
@@ -17,6 +29,13 @@ export async function registrarAporte(data) {
  * @returns {Promise<object>} consolidado con total y detalle
  */
 export async function consultarConsolidado({ afiliadoId, periodoDesde, periodoHasta }) {
-  // TODO: implementar con fetch
-  throw new Error('consultarConsolidado: pendiente de implementación')
+  const params = new URLSearchParams({ afiliadoId, periodoDesde, periodoHasta })
+  const res = await fetch(`${BASE_URL}/consolidado?${params}`)
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}))
+    throw new Error(error.mensaje || `Error ${res.status}`)
+  }
+
+  return res.json()
 }

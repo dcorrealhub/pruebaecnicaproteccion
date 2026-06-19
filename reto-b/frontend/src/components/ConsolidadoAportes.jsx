@@ -1,18 +1,6 @@
 import { useState } from 'react'
 import { consultarConsolidado } from '../api/aportesApi'
 
-/**
- * TODO (candidato): implementar la vista de consolidado de aportes.
- *
- * Campos de búsqueda:
- *   - afiliadoId (texto)
- *   - periodoDesde (formato YYYY-MM)
- *   - periodoHasta (formato YYYY-MM)
- *
- * Resultado esperado:
- *   - Total aportado en el periodo
- *   - Tabla con el detalle de cada aporte (fecha, monto, canal, marcadaRevision)
- */
 export default function ConsolidadoAportes() {
   const [filtros, setFiltros] = useState({ afiliadoId: '', periodoDesde: '', periodoHasta: '' })
   const [consolidado, setConsolidado] = useState(null)
@@ -52,24 +40,22 @@ export default function ConsolidadoAportes() {
         </label>
 
         <label>
-          Periodo desde (YYYY-MM)
+          Periodo desde
           <input
+            type="month"
             value={filtros.periodoDesde}
             onChange={e => setFiltros(f => ({ ...f, periodoDesde: e.target.value }))}
-            placeholder="2025-01"
-            pattern="\d{4}-\d{2}"
             required
             style={{ display: 'block', marginTop: 4 }}
           />
         </label>
 
         <label>
-          Periodo hasta (YYYY-MM)
+          Periodo hasta
           <input
+            type="month"
             value={filtros.periodoHasta}
             onChange={e => setFiltros(f => ({ ...f, periodoHasta: e.target.value }))}
-            placeholder="2025-06"
-            pattern="\d{4}-\d{2}"
             required
             style={{ display: 'block', marginTop: 4 }}
           />

@@ -8,13 +8,16 @@ import co.proteccion.cis.retob.infrastructure.web.dto.AporteResponse;
 import co.proteccion.cis.retob.infrastructure.web.dto.ConsolidadoResponse;
 import co.proteccion.cis.retob.infrastructure.web.dto.RegistrarAporteRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/aportes")
 @RequiredArgsConstructor
+@Validated
 public class AporteController {
 
     private final RegistrarAporteUseCase registrarAporteUseCase;
@@ -35,8 +38,8 @@ public class AporteController {
     @GetMapping("/consolidado")
     public ConsolidadoResponse consolidado(
             @RequestParam String afiliadoId,
-            @RequestParam String periodoDesde,
-            @RequestParam String periodoHasta) {
+            @RequestParam @Pattern(regexp = "\\d{4}-\\d{2}", message = "El periodoDesde debe tener formato YYYY-MM") String periodoDesde,
+            @RequestParam @Pattern(regexp = "\\d{4}-\\d{2}", message = "El periodoHasta debe tener formato YYYY-MM") String periodoHasta) {
         var query = new ConsultarAportesQuery(afiliadoId, periodoDesde, periodoHasta);
         return ConsolidadoResponse.from(consultarAportesUseCase.consultar(query));
     }

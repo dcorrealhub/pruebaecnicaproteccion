@@ -3,6 +3,7 @@ package co.proteccion.cis.retob.infrastructure.web.dto;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 import java.math.BigDecimal;
 
@@ -16,6 +17,8 @@ public record RegistrarAporteRequest(
         BigDecimal monto,
 
         @NotBlank(message = "El canal es obligatorio")
+        @Pattern(regexp = "APP_MOVIL|WEB|SUCURSAL",
+                 message = "Canal no válido. Valores permitidos: APP_MOVIL, WEB, SUCURSAL")
         String canal,
 
         @NotBlank(message = "La clave de idempotencia es obligatoria")

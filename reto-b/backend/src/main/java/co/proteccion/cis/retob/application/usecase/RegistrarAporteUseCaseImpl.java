@@ -1,42 +1,68 @@
 package co.proteccion.cis.retob.application.usecase;
 
+import co.proteccion.cis.retob.application.AporteLimites;
+import co.proteccion.cis.retob.domain.exception.ReglaNegocioException;
 import co.proteccion.cis.retob.domain.model.Aporte;
+import co.proteccion.cis.retob.domain.model.SaldoMensual;
 import co.proteccion.cis.retob.domain.port.in.RegistrarAporteUseCase;
 import co.proteccion.cis.retob.domain.port.out.AporteRepositoryPort;
 import co.proteccion.cis.retob.domain.port.out.SaldoRepositoryPort;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
-/**
- * Implementación del caso de uso de registro de aportes.
- *
- * TODO (candidato): implementar la lógica de negocio:
- *   1. Verificar idempotencia: si ya existe un aporte con la misma idempotenciaKey, retornarlo.
- *   2. Validar monto positivo y que no supere el tope mensual del afiliado.
- *   3. Marcar para revisión si el monto supera {@code umbralRevision}.
- *   4. Actualizar el saldo mensual del afiliado de forma concurrentemente segura.
- *   5. Persistir el aporte y publicar el evento correspondiente.
- *   6. Envolver todo en una transacción (@Transactional).
- */
 @Service
 @RequiredArgsConstructor
 public class RegistrarAporteUseCaseImpl implements RegistrarAporteUseCase {
 
+    private static final DateTimeFormatter PERIODO_FMT = DateTimeFormatter.ofPattern("yyyy-MM");
+
     private final AporteRepositoryPort aporteRepository;
     private final SaldoRepositoryPort saldoRepository;
-
-    @Value("${aporte.tope-mensual:10000000}")
-    private BigDecimal topeMensual;
-
-    @Value("${aporte.umbral-revision:5000000}")
-    private BigDecimal umbralRevision;
+    private final AporteLimites limites;
+    private final Clock clock;
 
     @Override
+    @Transactional
     public Aporte registrar(RegistrarAporteCommand command) {
-        // TODO: implementar
-        throw new UnsupportedOperationException("Pendiente de implementación");
+        // 1. Idempotencia: si ya se registró con esta clave, retornar el aporte existente
+        Optional<Aporte> existente = aporteRepository.findByIdempotenciaKey(command.idempotenciaKey());
+        if (existente.isPresent()) {
+            return existente.get();
+        }
+
+        LocalDate hoy = LocalDate.now(clock);
+        String periodo = hoy.format(PERIODO_FMT);
+
+        // 2. Verificar tope mensual (get-or-init del saldo del mes)
+        SaldoMensual saldo = saldoRepository.findByAfiliadoIdAndMes(command.afiliadoId(), periodo)
+                .orElseGet(() -> saldoRepository.inicializar(command.afiliadoId(), periodo));
+
+        BigDecimal nuevoTotal = saldo.calcularNuevoTotal(command.monto());
+        if (nuevoTotal.compareTo(limites.topeMensual()) > 0) {
+            BigDecimal disponible = limites.topeMensual().subtract(saldo.getTotal());
+            throw new ReglaNegocioException(
+                    String.format("El aporte supera el tope mensual. Disponible este mes: $%s", disponible.toPlainString())
+            );
+        }
+
+        // 3. Marcar para revisión si supera el umbral
+        boolean marcadaRevision = command.monto().compareTo(limites.umbralRevision()) > 0;
+
+        // 4. Persistir el aporte
+        Aporte nuevo = new Aporte(null, command.afiliadoId(), command.monto(), hoy,
+                command.canal(), periodo, marcadaRevision, command.idempotenciaKey());
+        Aporte persistido = aporteRepository.guardar(nuevo);
+
+        // 5. Actualizar el saldo mensual (concurrencia optimista via @Version en la entity)
+        saldoRepository.guardar(saldo.conTotal(nuevoTotal));
+
+        return persistido;
     }
 }
