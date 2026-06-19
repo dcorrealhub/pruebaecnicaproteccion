@@ -22,7 +22,7 @@ public class AporteController {
         Aporte a = new Aporte();
         a.setId(rs.getLong("id"));
         a.setAfiliadoId(rs.getString("afiliado_id"));
-        a.setMonto(rs.getDouble("monto"));
+        a.setMonto(rs.getBigDecimal("monto"));
         a.setFecha(rs.getDate("fecha").toLocalDate());
         a.setCanal(rs.getString("canal"));
         a.setPeriodo(rs.getString("periodo"));
@@ -38,8 +38,9 @@ public class AporteController {
     @GetMapping("/consolidado")
     public List<Aporte> consolidado(@RequestParam String afiliadoId,
                                     @RequestParam String periodo) {
-        String sql = "SELECT * FROM aporte WHERE afiliado_id = '"
-                + afiliadoId + "' AND periodo = '" + periodo + "'";
-        return jdbc.query(sql, aporteRowMapper);
+        // Query parametrizada: el driver JDBC escapa los valores,
+        // eliminando el riesgo de inyección SQL.
+        String sql = "SELECT * FROM aporte WHERE afiliado_id = ? AND periodo = ?";
+        return jdbc.query(sql, aporteRowMapper, afiliadoId, periodo);
     }
 }
