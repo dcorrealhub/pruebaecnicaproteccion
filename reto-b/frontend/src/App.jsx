@@ -6,19 +6,24 @@ export default function App() {
   const [vistaActiva, setVistaActiva] = useState('registrar')
 
   return (
-    <div style={{ fontFamily: 'sans-serif', maxWidth: 800, margin: '0 auto', padding: 24 }}>
-      <h1 style={{ fontSize: 22, marginBottom: 24 }}>Aportes Voluntarios</h1>
+    <div className="page-wrapper">
+      <h1 className="page-title">Aportes Voluntarios</h1>
+      <p className="page-subtitle">Registro y consulta de aportes al fondo de inversión voluntaria</p>
 
-      <nav style={{ marginBottom: 24, display: 'flex', gap: 12 }}>
+      <nav className="tab-nav" role="tablist">
         <button
+          role="tab"
+          aria-selected={vistaActiva === 'registrar'}
+          className={`tab-btn${vistaActiva === 'registrar' ? ' active' : ''}`}
           onClick={() => setVistaActiva('registrar')}
-          style={{ fontWeight: vistaActiva === 'registrar' ? 'bold' : 'normal' }}
         >
           Registrar aporte
         </button>
         <button
+          role="tab"
+          aria-selected={vistaActiva === 'consolidado'}
+          className={`tab-btn${vistaActiva === 'consolidado' ? ' active' : ''}`}
           onClick={() => setVistaActiva('consolidado')}
-          style={{ fontWeight: vistaActiva === 'consolidado' ? 'bold' : 'normal' }}
         >
           Consolidado
         </button>

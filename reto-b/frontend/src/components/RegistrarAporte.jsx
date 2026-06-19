@@ -1,103 +1,138 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { registrarAporte } from '../api/aportesApi'
 
-/**
- * TODO (candidato): implementar el formulario de registro de aporte.
- *
- * Campos requeridos:
- *   - afiliadoId (texto, sintético — ej: "AF-001")
- *   - monto (número, positivo)
- *   - canal (selector: APP_MOVIL, WEB, SUCURSAL)
- *   - idempotenciaKey: generar automáticamente con crypto.randomUUID()
- *
- * Comportamiento esperado:
- *   - Validar monto > 0 antes de enviar
- *   - Mostrar mensaje de éxito o error según la respuesta
- *   - Si el aporte queda marcado para revisión, indicarlo claramente
- */
+const HOY = new Date().toISOString().split('T')[0]
+
 export default function RegistrarAporte() {
-  const [form, setForm] = useState({ afiliadoId: '', monto: '', canal: 'APP_MOVIL' })
+  const [form, setForm] = useState({ afiliadoId: '', monto: '', fecha: HOY, canal: 'APP_MOVIL' })
+  const [errores, setErrores] = useState({})
   const [resultado, setResultado] = useState(null)
-  const [error, setError] = useState(null)
+  const [errorServidor, setErrorServidor] = useState(null)
   const [cargando, setCargando] = useState(false)
+  const idempotenciaKey = useRef(crypto.randomUUID())
+
+  function campo(nombre) {
+    return {
+      value: form[nombre],
+      onChange: e => {
+        setForm(f => ({ ...f, [nombre]: e.target.value }))
+        setErrores(prev => ({ ...prev, [nombre]: null }))
+      },
+    }
+  }
+
+  function validar() {
+    const errs = {}
+    if (!form.afiliadoId.trim()) errs.afiliadoId = 'El ID de afiliado es obligatorio'
+    const monto = parseFloat(form.monto)
+    if (!form.monto || isNaN(monto) || monto <= 0) errs.monto = 'Ingresá un monto mayor a cero'
+    if (!form.fecha) errs.fecha = 'La fecha es obligatoria'
+    return errs
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setError(null)
+    setErrorServidor(null)
     setResultado(null)
-    setCargando(true)
 
+    const errs = validar()
+    if (Object.keys(errs).length > 0) { setErrores(errs); return }
+
+    setCargando(true)
     try {
-      // TODO: completar la llamada, incluir idempotenciaKey
-      const data = await registrarAporte({
-        ...form,
-        monto: parseFloat(form.monto),
-        idempotenciaKey: crypto.randomUUID(),
-      })
+      const data = await registrarAporte(
+        { ...form, monto: parseFloat(form.monto) },
+        idempotenciaKey.current
+      )
       setResultado(data)
+      idempotenciaKey.current = crypto.randomUUID()
     } catch (err) {
-      setError(err.message)
+      setErrorServidor(err.message)
     } finally {
       setCargando(false)
     }
   }
 
   return (
-    <div>
-      <h2 style={{ fontSize: 18, marginBottom: 16 }}>Registrar aporte</h2>
+    <div className="card">
+      <h2 className="card-title">Registrar aporte</h2>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 400 }}>
-        <label>
-          ID Afiliado (sintético)
-          <input
-            value={form.afiliadoId}
-            onChange={e => setForm(f => ({ ...f, afiliadoId: e.target.value }))}
-            placeholder="AF-001"
-            required
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
-          />
-        </label>
+      <form onSubmit={handleSubmit} noValidate>
+        <div className="form-grid">
+          <div className="form-field">
+            <label className="form-label" htmlFor="afiliadoId">ID Afiliado (sintético)</label>
+            <input
+              id="afiliadoId"
+              className={`form-input${errores.afiliadoId ? ' error' : ''}`}
+              placeholder="AF-001"
+              data-testid="input-afiliado"
+              {...campo('afiliadoId')}
+            />
+            {errores.afiliadoId && <span className="field-error">{errores.afiliadoId}</span>}
+          </div>
 
-        <label>
-          Monto (COP)
-          <input
-            type="number"
-            min="0.01"
-            step="0.01"
-            value={form.monto}
-            onChange={e => setForm(f => ({ ...f, monto: e.target.value }))}
-            required
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
-          />
-        </label>
+          <div className="form-field">
+            <label className="form-label" htmlFor="monto">Monto (COP)</label>
+            <input
+              id="monto"
+              type="number"
+              min="0.01"
+              step="0.01"
+              className={`form-input${errores.monto ? ' error' : ''}`}
+              placeholder="100000"
+              data-testid="input-monto"
+              {...campo('monto')}
+            />
+            {errores.monto && <span className="field-error">{errores.monto}</span>}
+          </div>
 
-        <label>
-          Canal
-          <select
-            value={form.canal}
-            onChange={e => setForm(f => ({ ...f, canal: e.target.value }))}
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
-          >
-            <option value="APP_MOVIL">App móvil</option>
-            <option value="WEB">Web</option>
-            <option value="SUCURSAL">Sucursal</option>
-          </select>
-        </label>
+          <div className="form-field">
+            <label className="form-label" htmlFor="fecha">Fecha del aporte</label>
+            <input
+              id="fecha"
+              type="date"
+              max={HOY}
+              className={`form-input${errores.fecha ? ' error' : ''}`}
+              data-testid="input-fecha"
+              {...campo('fecha')}
+            />
+            {errores.fecha && <span className="field-error">{errores.fecha}</span>}
+          </div>
 
-        <button type="submit" disabled={cargando}>
-          {cargando ? 'Registrando...' : 'Registrar'}
-        </button>
+          <div className="form-field">
+            <label className="form-label" htmlFor="canal">Canal de origen</label>
+            <select
+              id="canal"
+              className="form-select"
+              data-testid="select-canal"
+              {...campo('canal')}
+            >
+              <option value="APP_MOVIL">App móvil</option>
+              <option value="WEB">Web</option>
+              <option value="SUCURSAL">Sucursal</option>
+            </select>
+          </div>
+
+          <div className="form-field full-width" style={{ marginTop: 4 }}>
+            <button type="submit" className="btn btn-primary" disabled={cargando} data-testid="btn-registrar">
+              {cargando ? 'Registrando…' : 'Registrar aporte'}
+            </button>
+          </div>
+        </div>
       </form>
 
-      {error && (
-        <p style={{ color: 'red', marginTop: 16 }}>Error: {error}</p>
+      {errorServidor && (
+        <div className="alert alert-error" role="alert">{errorServidor}</div>
       )}
 
       {resultado && (
-        <div style={{ marginTop: 16, padding: 12, background: '#f0f0f0' }}>
-          <p>Aporte registrado. ID: {resultado.id}</p>
+        <div className="alert alert-success" role="status">
+          Aporte registrado correctamente — Periodo: <strong>{resultado.periodo}</strong>
           {resultado.marcadaRevision && (
-            <p style={{ color: 'orange' }}>Este aporte quedó marcado para revisión.</p>
+            <div className="alert alert-warning">
+              <span className="badge-revision">⚠ Requiere revisión</span>
+              {' '}Este aporte superó el umbral y quedó marcado para revisión por el área de cumplimiento.
+            </div>
           )}
         </div>
       )}

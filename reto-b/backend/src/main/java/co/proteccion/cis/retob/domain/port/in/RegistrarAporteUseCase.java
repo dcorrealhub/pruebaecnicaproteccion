@@ -3,6 +3,7 @@ package co.proteccion.cis.retob.domain.port.in;
 import co.proteccion.cis.retob.domain.model.Aporte;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 /**
  * Puerto de entrada (caso de uso): registrar un aporte voluntario.
@@ -17,13 +18,14 @@ public interface RegistrarAporteUseCase {
      *
      * @param command datos del aporte a registrar
      * @return el aporte persistido
-     * @throws IllegalArgumentException si las reglas de negocio son violadas
+     * @throws co.proteccion.cis.retob.domain.exception.ReglaNegocioException si las reglas de negocio son violadas
      */
     Aporte registrar(RegistrarAporteCommand command);
 
     record RegistrarAporteCommand(
             String afiliadoId,
             BigDecimal monto,
+            LocalDate fecha,
             String canal,
             String idempotenciaKey
     ) {}

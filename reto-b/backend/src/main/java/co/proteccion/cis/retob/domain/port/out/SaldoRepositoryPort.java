@@ -5,18 +5,17 @@ import co.proteccion.cis.retob.domain.model.SaldoMensual;
 import java.util.Optional;
 
 /**
- * Puerto de salida: abstracción de persistencia para saldos mensuales.
- * La implementación debe garantizar control de concurrencia optimista.
+ * Puerto de salida: persistencia del saldo mensual acumulado por afiliado.
  */
 public interface SaldoRepositoryPort {
 
     Optional<SaldoMensual> findByAfiliadoIdAndMes(String afiliadoId, String mes);
 
-    /**
-     * Persiste el saldo. Si el {@code version} no coincide con el almacenado,
-     * debe lanzar una excepción de conflicto de concurrencia.
-     */
     SaldoMensual guardar(SaldoMensual saldo);
 
+    /**
+     * Crea un saldo mensual inicial en cero para el afiliado y mes indicados.
+     * Solo debe llamarse cuando no existe saldo previo para ese periodo.
+     */
     SaldoMensual inicializar(String afiliadoId, String mes);
 }

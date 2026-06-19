@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Puerto de salida: abstracción de persistencia para aportes.
- * La implementación vive en la capa de infraestructura.
+ * Puerto de salida: persistencia de aportes.
+ * El dominio define la interfaz; la infraestructura la implementa.
  */
 public interface AporteRepositoryPort {
 

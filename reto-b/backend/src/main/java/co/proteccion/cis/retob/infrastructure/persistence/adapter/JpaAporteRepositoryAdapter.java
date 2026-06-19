@@ -2,6 +2,7 @@ package co.proteccion.cis.retob.infrastructure.persistence.adapter;
 
 import co.proteccion.cis.retob.domain.model.Aporte;
 import co.proteccion.cis.retob.domain.port.out.AporteRepositoryPort;
+import co.proteccion.cis.retob.infrastructure.persistence.entity.AporteEntity;
 import co.proteccion.cis.retob.infrastructure.persistence.repository.SpringDataAporteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -9,13 +10,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Adaptador JPA para el puerto de salida {@link AporteRepositoryPort}.
- *
- * TODO (candidato): implementar los métodos mapeando entre
- * {@link co.proteccion.cis.retob.infrastructure.persistence.entity.AporteEntity}
- * y {@link Aporte}.
- */
 @Repository
 @RequiredArgsConstructor
 public class JpaAporteRepositoryAdapter implements AporteRepositoryPort {
@@ -24,21 +18,47 @@ public class JpaAporteRepositoryAdapter implements AporteRepositoryPort {
 
     @Override
     public Aporte guardar(Aporte aporte) {
-        // TODO: mapear Aporte → AporteEntity, guardar, mapear AporteEntity → Aporte
-        throw new UnsupportedOperationException("Pendiente de implementación");
+        return toDomain(springDataRepo.save(toEntity(aporte)));
     }
 
     @Override
     public Optional<Aporte> findByIdempotenciaKey(String idempotenciaKey) {
-        // TODO: buscar por idempotenciaKey y mapear resultado
-        throw new UnsupportedOperationException("Pendiente de implementación");
+        return springDataRepo.findByIdempotenciaKey(idempotenciaKey).map(this::toDomain);
     }
 
     @Override
     public List<Aporte> findByAfiliadoIdAndPeriodoBetween(String afiliadoId,
                                                            String periodoDesde,
                                                            String periodoHasta) {
-        // TODO: delegar en springDataRepo y mapear la lista
-        throw new UnsupportedOperationException("Pendiente de implementación");
+        return springDataRepo.findByAfiliadoIdAndPeriodoBetween(afiliadoId, periodoDesde, periodoHasta)
+                .stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
+    private AporteEntity toEntity(Aporte a) {
+        return AporteEntity.builder()
+                .id(a.getId())
+                .afiliadoId(a.getAfiliadoId())
+                .monto(a.getMonto())
+                .fecha(a.getFecha())
+                .canal(a.getCanal())
+                .periodo(a.getPeriodo())
+                .marcadaRevision(a.isMarcadaRevision())
+                .idempotenciaKey(a.getIdempotenciaKey())
+                .build();
+    }
+
+    private Aporte toDomain(AporteEntity e) {
+        return new Aporte(
+                e.getId(),
+                e.getAfiliadoId(),
+                e.getMonto(),
+                e.getFecha(),
+                e.getCanal(),
+                e.getPeriodo(),
+                e.isMarcadaRevision(),
+                e.getIdempotenciaKey()
+        );
     }
 }
