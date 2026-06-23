@@ -4,6 +4,7 @@ import co.proteccion.cis.retob.domain.model.ConsolidadoAportes;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public record ConsolidadoResponse(
         String afiliadoId,
@@ -18,7 +19,7 @@ public record ConsolidadoResponse(
                 consolidado.periodoDesde(),
                 consolidado.periodoHasta(),
                 consolidado.totalAportado(),
-                consolidado.detalle().stream().map(AporteResponse::from).toList()
+                consolidado.detalle().stream().map(AporteResponse::from).collect(Collectors.toList())
         );
     }
 }

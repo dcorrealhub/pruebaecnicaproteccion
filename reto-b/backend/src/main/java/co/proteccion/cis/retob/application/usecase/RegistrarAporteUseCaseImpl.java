@@ -7,7 +7,11 @@ import co.proteccion.cis.retob.domain.port.out.SaldoRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
+import co.proteccion.cis.retob.domain.model.SaldoMensual;
+import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import java.math.BigDecimal;
 
 /**
@@ -21,12 +25,13 @@ import java.math.BigDecimal;
  *   5. Persistir el aporte y publicar el evento correspondiente.
  *   6. Envolver todo en una transacción (@Transactional).
  */
+
 @Service
 @RequiredArgsConstructor
 public class RegistrarAporteUseCaseImpl implements RegistrarAporteUseCase {
 
     private final AporteRepositoryPort aporteRepository;
-    private final SaldoRepositoryPort saldoRepository;
+    private final SaldoRepositoryPort  saldoRepository;
 
     @Value("${aporte.tope-mensual:10000000}")
     private BigDecimal topeMensual;
@@ -35,8 +40,51 @@ public class RegistrarAporteUseCaseImpl implements RegistrarAporteUseCase {
     private BigDecimal umbralRevision;
 
     @Override
+    @Transactional
     public Aporte registrar(RegistrarAporteCommand command) {
-        // TODO: implementar
-        throw new UnsupportedOperationException("Pendiente de implementación");
+
+        Optional<Aporte> existente = aporteRepository.findByIdempotenciaKey(command.idempotenciaKey());
+        if (existente.isPresent()) {
+            return existente.get();
+        }
+
+        if (command.monto() == null || command.monto().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El monto debe ser positivo.");
+        }
+
+        LocalDate hoy    = LocalDate.now();
+        String periodo   = hoy.format(DateTimeFormatter.ofPattern("yyyy-MM"));
+
+        SaldoMensual saldo = saldoRepository
+                .findByAfiliadoIdAndMes(command.afiliadoId(), periodo)
+                .orElseGet(() -> saldoRepository.inicializar(command.afiliadoId(), periodo));
+
+        BigDecimal nuevoTotal = saldo.calcularNuevoTotal(command.monto());
+
+        if (nuevoTotal.compareTo(topeMensual) > 0) {
+            throw new IllegalArgumentException(
+                    "El aporte supera el tope mensual permitido de " + topeMensual +
+                            ". Acumulado actual: " + saldo.getTotal()
+            );
+        }
+
+        boolean marcada = command.monto().compareTo(umbralRevision) > 0;
+
+        Aporte aporte = new Aporte(
+                null,
+                command.afiliadoId(),
+                command.monto(),
+                hoy,
+                command.canal(),
+                periodo,
+                marcada,
+                command.idempotenciaKey()
+        );
+
+        Aporte persistido = aporteRepository.guardar(aporte);
+
+        saldoRepository.guardar(saldo.conTotal(nuevoTotal));
+
+        return persistido;
     }
 }
