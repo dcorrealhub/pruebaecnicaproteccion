@@ -12,178 +12,62 @@ Se realizó una revisión manual del código fuente siguiendo los siguientes cri
 
 Adicionalmente, se utilizó asistencia de IA como apoyo para complementar la revisión y contrastar posibles riesgos. Todos los hallazgos documentados fueron posteriormente verificados directamente en el código fuente.
 
-**Prompt utilizado**
+---
+
+## Prompts utilizados durante la auditoría
+
+### Revisión general del proyecto
 
 > Analiza un proyecto Spring Boot relacionado con aportes financieros e identifica posibles problemas de seguridad, manejo de dinero, validaciones de negocio, integridad de datos, concurrencia y consistencia transaccional. Explica el riesgo y la recomendación.
 
----
-
-# Hallazgo 1: Posible SQL Injection
-
-**Ubicación:** `AporteController.java` - método `consolidado()`
-
-**Severidad:** Crítica
-
-## Observación
-
-En el controlador se construye una consulta SQL concatenando directamente parámetros recibidos desde la petición HTTP.
-
-## Evidencia
-
-```java
-String sql = "SELECT * FROM aporte WHERE afiliado_id = '"
-        + afiliadoId + "' AND periodo = '" + periodo + "'";
-```
-
-## Riesgo
-
-Un usuario malicioso podría alterar los parámetros de entrada para modificar la consulta ejecutada y acceder a información no autorizada.
-
-## Recomendación
-
-Utilizar consultas parametrizadas o delegar la consulta a Spring Data JPA.
+**Objetivo:** obtener una visión general de riesgos potenciales antes de revisar el código manualmente.
 
 ---
 
-# Hallazgo 2: Uso de double para valores monetarios
+### Auditoría orientada a entorno financiero
 
-**Ubicación:** `Aporte.java`, `Saldo.java`, `EventoAporte.java`, `AporteRequest.java`
+> Analiza el código como si estuvieras revisando un Merge Request para una entidad financiera. Prioriza problemas relacionados con precisión numérica, manejo de dinero, consistencia transaccional, concurrencia, idempotencia y seguridad. Clasifica los hallazgos por severidad.
 
-**Severidad:** Alta
-
-## Observación
-
-Los montos financieros son almacenados utilizando el tipo de dato `double`.
-
-## Evidencia
-
-```java
-private double monto;
-private double totalMes;
-```
-
-## Riesgo
-
-Los tipos de punto flotante pueden generar errores de precisión en operaciones financieras y acumulación de saldos.
-
-## Recomendación
-
-Utilizar `BigDecimal` para representar valores monetarios.
+**Objetivo:** enfocar la revisión en riesgos relevantes para un contexto regulado.
 
 ---
 
-# Hallazgo 3: Validación insuficiente del tope mensual
+### Búsqueda de vulnerabilidades de seguridad
 
-**Ubicación:** `AporteService.java` - método `registrar()`
+> Revisa el código buscando posibles vulnerabilidades OWASP Top 10. Identifica riesgos de SQL Injection, validación insuficiente de entradas, exposición de información sensible o cualquier patrón inseguro. Explica el impacto y la mitigación recomendada.
 
-**Severidad:** Alta
-
-## Observación
-
-La validación del tope mensual únicamente se ejecuta cuando el valor acumulado es exactamente igual al límite configurado.
-
-## Evidencia
-
-```java
-if (nuevo == topeMensual)
-```
-
-## Riesgo
-
-Es posible registrar aportes que superen el límite permitido sin generar ninguna validación.
-
-## Ejemplo
-
-Si el tope es de 10.000.000 y el nuevo saldo queda en 10.000.001, la validación no se ejecuta.
-
-## Recomendación
-
-Validar utilizando una condición que contemple valores iguales o superiores al límite definido.
+**Objetivo:** identificar problemas de seguridad que podrían bloquear la aprobación de un Merge Request.
 
 ---
 
-# Hallazgo 4: Consulta de saldo sin considerar el período
+### Revisión de manejo de dinero
 
-**Ubicación:** `SaldoJpaRepository.java`
+> Analiza el uso de tipos numéricos dentro del proyecto. Identifica posibles riesgos asociados al uso de double, float o comparaciones numéricas incorrectas en procesos financieros. Explica las mejores prácticas recomendadas.
 
-**Severidad:** Media
-
-## Observación
-
-La búsqueda de saldo se realiza únicamente por afiliado.
-
-## Evidencia
-
-```java
-Optional<Saldo> findByAfiliadoId(String afiliadoId);
-```
-
-La entidad `Saldo` almacena información asociada a un mes específico.
-
-## Riesgo
-
-Se podrían utilizar saldos correspondientes a períodos diferentes al que se está procesando.
-
-## Recomendación
-
-Consultar utilizando afiliado y período como criterios de búsqueda.
+**Objetivo:** validar la corrección de cálculos monetarios.
 
 ---
 
-# Hallazgo 5: Ausencia de manejo transaccional
+### Revisión de concurrencia y consistencia
 
-**Ubicación:** `AporteService.java` - método `registrar()`
+> Analiza los procesos de actualización de saldo y persistencia de aportes. Identifica posibles condiciones de carrera, pérdida de actualizaciones o inconsistencias provocadas por accesos concurrentes. Explica alternativas de mitigación utilizando capacidades de JPA y Spring.
 
-**Severidad:** Alta
-
-## Observación
-
-El proceso de registro de aportes realiza múltiples operaciones de persistencia:
-
-* Actualización de saldo.
-* Registro de evento.
-* Registro de aporte.
-
-## Evidencia
-
-Las operaciones se ejecutan de forma consecutiva sin manejo transaccional explícito.
-
-## Riesgo
-
-Si una operación falla después de haberse ejecutado otra, la información podría quedar inconsistente.
-
-## Recomendación
-
-Utilizar `@Transactional` para garantizar atomicidad y consistencia.
+**Objetivo:** detectar riesgos de concurrencia y pérdida de información.
 
 ---
 
-# Hallazgo 6: Riesgo de condición de carrera (Concurrencia)
+### Revisión de transacciones
 
-**Ubicación:** `AporteService.java` - método `registrar()`
+> Identifica operaciones que deberían ejecutarse dentro de una misma transacción. Explica qué inconsistencias podrían ocurrir si una operación falla después de haberse persistido parcialmente el estado.
 
-**Severidad:** Alta
+**Objetivo:** validar atomicidad y consistencia de los procesos críticos.
 
-## Observación
+---
 
-El saldo se consulta, modifica y guarda mediante un patrón de lectura-modificación-escritura sin mecanismos de sincronización o control de concurrencia.
+### Estrategia utilizada durante la auditoría
 
-## Evidencia
+Durante la revisión se utilizó el siguiente enfoque:
 
-```java
-Saldo s = saldoRepo.findByAfiliadoId(...);
+**Analizar → Contrastar → Verificar → Documentar**
 
-double nuevo = s.getTotalMes() + monto;
-
-s.setTotalMes(nuevo);
-
-saldoRepo.save(s);
-```
-
-## Riesgo
-
-Dos solicitudes concurrentes podrían leer el mismo saldo inicial y sobrescribir actualizaciones entre sí, generando pérdida de datos y valores incorrectos.
-
-## Recomendación
-
-Implementar control de concurrencia mediante transacciones apropiadas, bloqueo optimista/pesimista o mecanismos equivalentes soportados por JPA.
+La IA fue utilizada para sugerir posibles riesgos y líneas de análisis. Ningún hallazgo fue documentado sin ser verificado posteriormente en el código fuente. La clasificación de severidad, evidencia y recomendaciones fueron definidas después de revisar manualmente cada caso identificado.

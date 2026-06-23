@@ -156,23 +156,106 @@ Se completó la integración con la API mediante:
 
 "Analiza el proyecto completo reto-b siguiendo la arquitectura Clean Architecture. Identifica funcionalidades implementadas, clases pendientes, dependencias y orden recomendado de implementación."
 
-### Validación de dependencias
+**Objetivo:** obtener una visión general del proyecto antes de realizar modificaciones.
+
+---
+
+### Exploración completa de la arquitectura
+
+"Explora toda la estructura del proyecto reto-b y realiza un análisis completo. Identifica qué componentes ya están implementados, cuáles contienen lógica pendiente, qué dependencias existen entre capas, qué endpoints están disponibles y cuál sería el orden óptimo de implementación para habilitar la funcionalidad principal."
+
+**Objetivo:** comprender el estado real del proyecto antes de comenzar el desarrollo.
+
+---
+
+### Validación del orden de implementación
 
 "Analiza si JpaAporteRepositoryAdapter es realmente el primer componente que debería implementarse. Explica dependencias, impacto y riesgos antes de escribir código."
+
+**Objetivo:** validar el orden de trabajo y evitar implementar componentes sin comprender su impacto.
+
+---
+
+### Análisis de dependencias y desbloqueo de funcionalidades
+
+"Analiza qué funcionalidades quedarían habilitadas después de implementar cada componente pendiente. Explica dependencias, bloqueos actuales y orden recomendado para habilitar los endpoints lo más rápido posible."
+
+**Objetivo:** priorizar el desarrollo según impacto funcional.
+
+---
+
+### Análisis específico de JpaAporteRepositoryAdapter
+
+"Antes de implementar JpaAporteRepositoryAdapter.java, analiza dependencias, responsabilidades, mapeos requeridos entre dominio y persistencia, riesgos de implementación y compatibilidad con la arquitectura existente. No escribas código todavía."
+
+**Objetivo:** comprender completamente el adaptador antes de implementar persistencia de aportes.
+
+---
 
 ### Análisis específico de JpaSaldoRepositoryAdapter
 
 "Analiza únicamente JpaSaldoRepositoryAdapter.java y todas las clases relacionadas. No escribas código todavía. Explica responsabilidades, entidades involucradas, mapeos requeridos, manejo de concurrencia optimista y riesgos de implementación."
 
+**Objetivo:** validar el diseño antes de implementar el manejo de saldos.
+
+---
+
+### Análisis de concurrencia optimista
+
+"Explica detalladamente cómo funciona el campo version y la anotación @Version dentro de SaldoMensualEntity. Describe cómo Hibernate detecta conflictos de concurrencia, qué riesgos existen y qué errores podrían ocurrir si el valor version no se preserva correctamente."
+
+**Objetivo:** comprender el mecanismo de concurrencia antes de implementar el repositorio.
+
+---
+
 ### Análisis de RegistrarAporteUseCaseImpl
 
-"Analiza RegistrarAporteUseCaseImpl.java. Explica el flujo de idempotencia, validación de reglas de negocio, actualización de saldo mensual y persistencia del aporte antes de generar código."
+"Analiza RegistrarAporteUseCaseImpl.java. Explica el flujo completo de negocio antes de generar código. Incluye idempotencia, validación de monto positivo, validación de tope mensual, marcado para revisión, actualización de saldo mensual y persistencia del aporte."
+
+**Objetivo:** comprender completamente la lógica principal del negocio.
+
+---
 
 ### Análisis de ConsultarAportesUseCaseImpl
 
-"Analiza ConsultarAportesUseCaseImpl.java. Explica dependencias, cálculo del consolidado, uso de BigDecimal y consideraciones transaccionales antes de implementar."
+"Analiza ConsultarAportesUseCaseImpl.java. Explica dependencias, cálculo del consolidado, uso de BigDecimal, construcción de la respuesta, consideraciones transaccionales y posibles casos borde antes de implementar."
+
+**Objetivo:** validar la lógica de consulta antes de escribir código.
 
 ---
+
+### Validación antes de implementar
+
+"Antes de implementar, explica qué harías, qué dependencias utilizarías, qué riesgos existen y cómo validarías que la solución cumple los requisitos. No escribas código todavía."
+
+**Objetivo:** evitar generar código sin comprender previamente el problema.
+
+---
+
+### Implementación guiada respetando la arquitectura
+
+"Implementa únicamente la clase solicitada. Mantén Clean Architecture, respeta los contratos existentes, no modifiques otras clases, no agregues dependencias innecesarias y genera código compatible con Java 21 y Spring Boot 3.4. Explica brevemente cada decisión tomada."
+
+**Objetivo:** mantener coherencia con la arquitectura propuesta por el proyecto.
+
+---
+
+### Validación de decisiones de ingeniería
+
+"Evalúa la solución propuesta e identifica posibles debilidades, tradeoffs, mejoras para producción y aspectos que podrían ser cuestionados durante una revisión técnica. Justifica cada observación."
+
+**Objetivo:** fortalecer la defensa técnica de la solución implementada.
+
+---
+
+### Estrategia utilizada con IA
+
+Durante toda la prueba se utilizó el siguiente enfoque:
+
+**Analizar → Validar → Implementar → Revisar**
+
+La IA fue utilizada inicialmente para comprender el problema, validar dependencias, identificar riesgos y definir el orden de implementación. La generación de código se realizó únicamente después de entender responsabilidades, contratos y reglas de negocio. Todas las recomendaciones y fragmentos de código fueron revisados manualmente antes de incorporarse a la solución final.
+
 
 ## Conclusiones
 
