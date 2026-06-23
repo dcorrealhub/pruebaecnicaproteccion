@@ -17,7 +17,7 @@ public interface RegistrarAporteUseCase {
      *
      * @param command datos del aporte a registrar
      * @return el aporte persistido
-     * @throws IllegalArgumentException si las reglas de negocio son violadas
+     * @throws co.proteccion.cis.retob.domain.exception.DomainException si las reglas de negocio son violadas
      */
     Aporte registrar(RegistrarAporteCommand command);
 

@@ -12,7 +12,7 @@ public record AporteResponse(
         LocalDate fecha,
         String canal,
         String periodo,
-        boolean marcadaRevision
+        String estado
 ) {
     public static AporteResponse from(Aporte aporte) {
         return new AporteResponse(
@@ -20,9 +20,9 @@ public record AporteResponse(
                 aporte.getAfiliadoId(),
                 aporte.getMonto(),
                 aporte.getFecha(),
-                aporte.getCanal(),
+                aporte.getCanal().name(),
                 aporte.getPeriodo(),
-                aporte.isMarcadaRevision()
+                aporte.getEstado().name()
         );
     }
 }

@@ -1,0 +1,95 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #f5f5f5;
+  color: #222;
+}
+
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+h1 {
+  margin-bottom: 1.5rem;
+}
+
+section {
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+label {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+}
+
+input,
+select,
+button {
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+}
+
+button {
+  cursor: pointer;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #b91c1c;
+  font-size: 0.9rem;
+}
+
+.success {
+  color: #15803d;
+  font-size: 0.9rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 0.4rem 0.5rem;
+  text-align: left;
+}
+
+th {
+  background: #eee;
+}
+
+.resumen {
+  margin-top: 0.75rem;
+  font-size: 0.95rem;
+}

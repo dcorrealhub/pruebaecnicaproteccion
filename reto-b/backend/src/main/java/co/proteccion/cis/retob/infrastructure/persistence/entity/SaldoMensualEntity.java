@@ -1,20 +1,25 @@
 package co.proteccion.cis.retob.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.Check;
 
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "saldo_mensual",
-       uniqueConstraints = @UniqueConstraint(columnNames = {"afiliado_id", "mes"}))
-@Data
-@Builder
+@Table(
+        name = "saldo_mensual",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uq_saldo_afiliado_mes",
+                columnNames = {"afiliado_id", "mes"}
+        )
+)
+@Check(constraints = "total >= 0")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class SaldoMensualEntity {
 
     @Id
@@ -28,7 +33,8 @@ public class SaldoMensualEntity {
     private String mes;
 
     @Column(nullable = false, precision = 15, scale = 2)
-    private BigDecimal total;
+    @Builder.Default
+    private BigDecimal total = BigDecimal.ZERO;
 
     @Version
     @Column(nullable = false)

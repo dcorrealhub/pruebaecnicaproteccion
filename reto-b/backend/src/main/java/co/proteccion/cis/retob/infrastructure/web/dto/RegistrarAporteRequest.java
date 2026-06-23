@@ -18,6 +18,5 @@ public record RegistrarAporteRequest(
         @NotBlank(message = "El canal es obligatorio")
         String canal,
 
-        @NotBlank(message = "La clave de idempotencia es obligatoria")
         String idempotenciaKey
 ) {}
