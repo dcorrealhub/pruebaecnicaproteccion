@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -18,7 +19,8 @@ public class EventoAporte {
 
     private String afiliadoId;
 
-    private double monto;
+    @Column(precision = 19, scale = 2)
+    private BigDecimal monto;
 
     private String tipo;
 

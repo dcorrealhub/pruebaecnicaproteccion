@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -20,8 +21,8 @@ public class Aporte {
 
     private String afiliadoId;
 
-    // Representa el monto del aporte en pesos colombianos
-    private double monto;
+    @Column(precision = 19, scale = 2)
+    private BigDecimal monto;
 
     private LocalDate fecha;
 

@@ -12,8 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -24,25 +26,29 @@ public class AporteService {
     private final SaldoJpaRepository saldoRepo;
     private final EventoAporteJpaRepository eventoRepo;
 
+    // @Value no soporta BigDecimal directamente; se usa String y se convierte al usarlo
     @Value("${aporte.tope-mensual:10000000}")
-    private double topeMensual;
+    private String topeMensualStr;
 
     @Value("${aporte.umbral-revision:5000000}")
-    private double umbralRevision;
+    private String umbralRevisionStr;
 
     public Aporte registrar(AporteRequest req) {
-        double monto = req.getMonto();
+        BigDecimal topeMensual    = new BigDecimal(topeMensualStr);
+        BigDecimal umbralRevision = new BigDecimal(umbralRevisionStr);
+        BigDecimal monto          = req.getMonto();
 
-        if (monto <= 0) {
+        if (monto.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("El monto debe ser positivo");
         }
 
         Saldo s = saldoRepo.findByAfiliadoId(req.getAfiliadoId())
-                .orElseThrow(() -> new IllegalArgumentException("Afiliado no encontrado: " + req.getAfiliadoId()));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Afiliado no encontrado: " + req.getAfiliadoId()));
 
-        double nuevo = s.getTotalMes() + monto;
-
-        if (nuevo == topeMensual) {
+        // Hallazgo N° 4 corregido: compareTo() > 0 en lugar de == topeMensual
+        BigDecimal nuevo = s.getTotalMes().add(monto);
+        if (nuevo.compareTo(topeMensual) > 0) {
             throw new IllegalArgumentException("El monto supera el tope mensual permitido");
         }
 
@@ -57,12 +63,20 @@ public class AporteService {
         aporte.setFecha(LocalDate.now());
         aporte.setCanal(req.getCanal());
         aporte.setPeriodo(periodo);
-        aporte.setMarcadaRevision(monto > umbralRevision);
+        aporte.setMarcadaRevision(monto.compareTo(umbralRevision) > 0);
 
         eventoRepo.save(new EventoAporte(aporte));
 
-        log.info("Aporte registrado: monto={} afiliado={}", monto, req.getAfiliadoId());
+        Aporte saved = aporteRepo.save(aporte);
 
-        return aporteRepo.save(aporte);
+        // Hallazgo N° 10 parcial: INFO no expone el monto exacto ni el afiliadoId
+        log.info("Aporte registrado. aporteId={} periodo={} marcadaRevision={}",
+                saved.getId(), saved.getPeriodo(), saved.isMarcadaRevision());
+
+        return saved;
+    }
+
+    public List<Aporte> consolidado(String afiliadoId, String periodo) {
+        return aporteRepo.findByAfiliadoIdAndPeriodo(afiliadoId, periodo);
     }
 }

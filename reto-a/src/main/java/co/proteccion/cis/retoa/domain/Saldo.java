@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "saldo")
 @Data
@@ -17,7 +19,8 @@ public class Saldo {
     private String afiliadoId;
 
     // Acumulado del mes en pesos colombianos
-    private double totalMes;
+    @Column(precision = 19, scale = 2)
+    private BigDecimal totalMes;
 
     // Formato YYYY-MM
     private String mes;
