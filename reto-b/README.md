@@ -17,13 +17,21 @@ curl -s -X POST http://localhost:8082/api/aportes \
   -d '{"afiliadoId":"AF-001","monto":500000,"canal":"APP_MOVIL","idempotenciaKey":"key-unica-1"}'
 ```
 
-### Idempotencia (mismo key, mismo resultado)
+### Idempotencia (mismo key → 200 OK con mismo ID)
 
 ```bash
-curl -s -X POST http://localhost:8082/api/aportes \
+# Primer llamado → 201 CREATED
+curl -s -w "\nHTTP %{http_code}\n" -X POST http://localhost:8082/api/aportes \
+  -H "Content-Type: application/json" \
+  -d '{"afiliadoId":"AF-001","monto":500000,"canal":"APP_MOVIL","idempotenciaKey":"key-unica-1"}'
+
+# Segundo llamado con misma key → 200 OK, mismo ID
+curl -s -w "\nHTTP %{http_code}\n" -X POST http://localhost:8082/api/aportes \
   -H "Content-Type: application/json" \
   -d '{"afiliadoId":"AF-001","monto":500000,"canal":"APP_MOVIL","idempotenciaKey":"key-unica-1"}'
 ```
+
+> **Nota:** El segundo llamado retorna `200 OK` (no `201 CREATED`) y el mismo `id` del aporte original. La operación es idempotente.
 
 ### Consultar consolidado
 
