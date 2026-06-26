@@ -196,6 +196,22 @@ System.out.println("Con BigDecimal: " + acumuladoBD);
 
 ---
 
+## Documentación interactiva (Swagger UI)
+
+![Swagger UI](docs/images/swagger-ui.png)
+
+> **Nota:** La imagen se añadirá una vez que la aplicación esté levantada y se tome el screenshot de la UI.
+
+La documentación OpenAPI 3.0 se genera automáticamente con SpringDoc y está disponible en:
+
+| Recurso | URL |
+|---|---|
+| Swagger UI (interactivo) | `http://localhost:8080/swagger-ui/index.html` |
+| OpenAPI JSON | `http://localhost:8080/v3/api-docs` |
+| OpenAPI YAML | `http://localhost:8080/v3/api-docs.yaml` |
+
+---
+
 ## Cómo ejecutar el módulo
 
 ```bash
@@ -205,17 +221,20 @@ cd reto-a
 # Compilar y ejecutar tests
 mvn clean test
 
-# Arrancar la aplicación
+# Arrancar la aplicación (entorno base)
 mvn spring-boot:run
+
+# Arrancar con perfil dev (activa consola H2 en /h2-console)
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
 # La API queda disponible en:
 # http://localhost:8080/api/aportes
-# Consola H2 (solo perfil dev): http://localhost:8080/h2-console
+# Swagger UI: http://localhost:8080/swagger-ui/index.html
 ```
 
 ## Endpoints disponibles
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| `POST` | `/api/aportes` | Registra un aporte voluntario |
+| `POST` | `/api/aportes` | Registra un aporte voluntario (idempotente) |
 | `GET` | `/api/aportes/consolidado?afiliadoId=&periodo=` | Consulta aportes por afiliado y periodo |

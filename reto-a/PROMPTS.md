@@ -300,6 +300,50 @@ Al finalizar este commit, haz un git push de todos los cambios locales.
 
 ---
 
+## Prompt N° 5 — Documentación OpenAPI con SpringDoc (Adicional)
+
+### Propósito
+Añadir documentación interactiva Swagger UI al módulo para que los evaluadores y consumidores de la API puedan explorar y probar los endpoints sin necesidad de Postman ni curl.
+
+### Prompt completo utilizado
+
+```
+Listo, quedó excelente, por último quiero que agregues swagger al proyecto utilizando
+springdoc. Actualiza el readme.md y el prompt.md. Agrega al readme una imagen sobre
+la documentación (Crea la carpeta docs/images) y yo me encargo de subir la imagen
+cuando esté lista la documentación.
+```
+
+### Decisiones de diseño del prompt
+
+| Decisión | Justificación |
+|---|---|
+| **SpringDoc 2.x** (`springdoc-openapi-starter-webmvc-ui:2.8.9`) | Compatible con Spring Boot 3.x y Jakarta EE. La versión 1.x (para Spring Boot 2.x) no funciona con Jakarta namespaces. |
+| **`OpenApiConfig` como `@Bean`** | Centraliza el metadata de la API (título, descripción, contacto, versión) en un solo lugar en vez de distribuirlo en propiedades. Permite descripción multi-línea con text blocks de Java. |
+| **`@Tag` en el controller, `@Operation` + `@ApiResponse` por método** | `@Tag` agrupa los endpoints en la UI. `@Operation` provee la descripción funcional. `@ApiResponse` documenta todos los códigos HTTP posibles (201, 400, 404, 409, 422) — el evaluador ve el contrato completo sin ejecutar la API. |
+| **`@Schema` en `AporteRequest`** | Los campos del DTO aparecen en el `Try it out` con valores de ejemplo (`example="AF-001"`) y documentación de restricciones — reduce el tiempo de exploración del evaluador. |
+| **`docs/images/` con `.gitkeep`** | Git no rastrea directorios vacíos. El `.gitkeep` reserva la ruta para que el usuario suba el screenshot de Swagger UI sin necesidad de crear la carpeta manualmente. |
+| **URL de Swagger UI en el README** | `http://localhost:8080/swagger-ui/index.html` — la ruta por defecto de SpringDoc. No se personaliza para evitar configuración innecesaria. |
+
+### Archivos añadidos/modificados
+
+| Archivo | Cambio |
+|---|---|
+| `pom.xml` | Dependencia `springdoc-openapi-starter-webmvc-ui:2.8.9` |
+| `config/OpenApiConfig.java` | `@Bean OpenAPI` con metadata completo |
+| `controller/AporteController.java` | `@Tag`, `@Operation`, `@ApiResponse`, `@Parameter` |
+| `dto/AporteRequest.java` | `@Schema` en clase y en cada campo |
+| `docs/images/.gitkeep` | Reserva directorio para el screenshot |
+| `README.md` | Sección "Documentación interactiva" con tabla de URLs e imagen placeholder |
+
+### Commits producidos
+
+```
+<hash>  docs(reto-a): agregar swagger ui con springdoc y documentar endpoints
+```
+
+---
+
 ## Notas de razonamiento adicionales
 
 ### Por qué se usó `@Column(precision = 19, scale = 2)` y no solo `BigDecimal`
