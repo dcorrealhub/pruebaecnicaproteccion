@@ -127,9 +127,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        Class<?> tipo = ex.getRequiredType();
+        String nombreTipo = tipo != null ? tipo.getSimpleName() : "desconocido";
         return errorBody("TIPO_INVALIDO",
-                String.format("El parámetro '%s' debe ser de tipo %s.",
-                        ex.getName(), ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "desconocido"));
+                String.format("El parámetro '%s' debe ser de tipo %s.", ex.getName(), nombreTipo));
     }
 
     // ── Utilidad ──────────────────────────────────────────────────────────────

@@ -1,114 +1,163 @@
 import { useState } from 'react'
 import { consultarConsolidado } from '../api/aportesApi'
+import Swal from 'sweetalert2'
 
-/**
- * TODO (candidato): implementar la vista de consolidado de aportes.
- *
- * Campos de búsqueda:
- *   - afiliadoId (texto)
- *   - periodoDesde (formato YYYY-MM)
- *   - periodoHasta (formato YYYY-MM)
- *
- * Resultado esperado:
- *   - Total aportado en el periodo
- *   - Tabla con el detalle de cada aporte (fecha, monto, canal, marcadaRevision)
- */
 export default function ConsolidadoAportes() {
   const [filtros, setFiltros] = useState({ afiliadoId: '', periodoDesde: '', periodoHasta: '' })
   const [consolidado, setConsolidado] = useState(null)
-  const [error, setError] = useState(null)
   const [cargando, setCargando] = useState(false)
 
   async function handleBuscar(e) {
     e.preventDefault()
-    setError(null)
     setConsolidado(null)
     setCargando(true)
 
     try {
       const data = await consultarConsolidado(filtros)
       setConsolidado(data)
+
+      if (!data.detalle || data.detalle.length === 0) {
+        Swal.fire({
+          title: 'Sin Resultados',
+          text: 'No se encontraron aportes para el afiliado en el periodo indicado.',
+          icon: 'info',
+          confirmButtonText: 'Aceptar',
+          customClass: {
+            popup: 'custom-swal-popup',
+            title: 'custom-swal-title',
+            confirmButton: 'custom-swal-confirm'
+          }
+        })
+      }
     } catch (err) {
-      setError(err.message)
+      Swal.fire({
+        title: 'Error de Consulta',
+        text: err.message || 'No se pudo obtener el consolidado de aportes.',
+        icon: 'error',
+        confirmButtonText: 'Aceptar',
+        customClass: {
+          popup: 'custom-swal-popup',
+          title: 'custom-swal-title',
+          confirmButton: 'custom-swal-confirm'
+        }
+      })
     } finally {
       setCargando(false)
     }
   }
 
   return (
-    <div>
-      <h2 style={{ fontSize: 18, marginBottom: 16 }}>Consolidado de aportes</h2>
+    <div className="card fade-in" style={{ width: '100%' }}>
+      <h2 className="card-title">Consolidado de Aportes</h2>
 
-      <form onSubmit={handleBuscar} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 24 }}>
-        <label>
-          ID Afiliado
+      {/* Filter Form */}
+      <form onSubmit={handleBuscar} style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '1rem',
+        alignItems: 'flex-end',
+        marginBottom: '2rem',
+        padding: '1.25rem',
+        backgroundColor: '#f8fafc',
+        borderRadius: 'var(--radius-md)',
+        border: '1px solid var(--border-light)'
+      }}>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label">ID Afiliado</label>
           <input
             value={filtros.afiliadoId}
             onChange={e => setFiltros(f => ({ ...f, afiliadoId: e.target.value }))}
-            placeholder="AF-001"
+            placeholder="Ej: AF-001"
+            className="form-input"
             required
-            style={{ display: 'block', marginTop: 4 }}
+            disabled={cargando}
           />
-        </label>
+        </div>
 
-        <label>
-          Periodo desde (YYYY-MM)
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label">Periodo Desde (YYYY-MM)</label>
           <input
             value={filtros.periodoDesde}
             onChange={e => setFiltros(f => ({ ...f, periodoDesde: e.target.value }))}
             placeholder="2025-01"
             pattern="\d{4}-\d{2}"
+            className="form-input"
             required
-            style={{ display: 'block', marginTop: 4 }}
+            disabled={cargando}
           />
-        </label>
+        </div>
 
-        <label>
-          Periodo hasta (YYYY-MM)
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label">Periodo Hasta (YYYY-MM)</label>
           <input
             value={filtros.periodoHasta}
             onChange={e => setFiltros(f => ({ ...f, periodoHasta: e.target.value }))}
             placeholder="2025-06"
             pattern="\d{4}-\d{2}"
+            className="form-input"
             required
-            style={{ display: 'block', marginTop: 4 }}
+            disabled={cargando}
           />
-        </label>
+        </div>
 
-        <button type="submit" disabled={cargando}>
-          {cargando ? 'Consultando...' : 'Consultar'}
+        <button type="submit" className="btn btn-primary" disabled={cargando}>
+          {cargando ? 'Consultando...' : '🔍 Buscar'}
         </button>
       </form>
 
-      {error && <p style={{ color: 'red' }}>Error: {error}</p>}
-
+      {/* Results Display */}
       {consolidado && (
-        <div>
-          <p><strong>Total aportado:</strong> {consolidado.totalAportado?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</p>
+        <div className="fade-in">
+          {/* Total Box */}
+          <div className="stat-card" style={{ maxWidth: '320px', marginBottom: '1.5rem', border: '1.5px solid var(--color-success)' }}>
+            <div className="stat-icon" style={{ backgroundColor: 'var(--color-success-bg)', color: 'var(--color-success)' }}>💰</div>
+            <div className="stat-info">
+              <span className="stat-label">Total Aportado en Periodo</span>
+              <span className="stat-value" style={{ color: 'var(--color-success)' }}>
+                {consolidado.totalAportado?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+              </span>
+            </div>
+          </div>
 
-          {consolidado.detalle?.length > 0 ? (
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12 }}>
-              <thead>
-                <tr style={{ background: '#eee' }}>
-                  <th style={th}>Fecha</th>
-                  <th style={th}>Monto</th>
-                  <th style={th}>Canal</th>
-                  <th style={th}>Revisión</th>
-                </tr>
-              </thead>
-              <tbody>
-                {consolidado.detalle.map(a => (
-                  <tr key={a.id}>
-                    <td style={td}>{a.fecha}</td>
-                    <td style={td}>{a.monto?.toLocaleString('es-CO')}</td>
-                    <td style={td}>{a.canal}</td>
-                    <td style={td}>{a.marcadaRevision ? 'Sí' : 'No'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Details Table */}
+          {consolidado.detalle && consolidado.detalle.length > 0 ? (
+            <div>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', fontWeight: 600 }}>Detalle de Transacciones</h3>
+              <div className="table-container">
+                <table className="custom-table">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Monto</th>
+                      <th>Canal</th>
+                      <th>Estado / Revisión</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {consolidado.detalle.map(a => (
+                      <tr key={a.id}>
+                        <td style={{ fontWeight: 500 }}>{a.fecha}</td>
+                        <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                          $ {a.monto?.toLocaleString('es-CO', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td>
+                          {a.canal === 'APP_MOVIL' ? '📲 App móvil' : a.canal === 'WEB' ? '💻 Web' : '🏢 Sucursal'}
+                        </td>
+                        <td>
+                          <span className={`badge ${a.marcadaRevision ? 'badge-warning' : 'badge-success'}`}>
+                            {a.marcadaRevision ? '⚠️ En revisión' : '✅ Procesado'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           ) : (
-            <p>No se encontraron aportes en el periodo indicado.</p>
+            <div className="text-center text-muted" style={{ padding: '2rem', border: '1px dashed var(--border-light)', borderRadius: 'var(--radius-md)' }}>
+              No se encontraron aportes registrados en este periodo.
+            </div>
           )}
         </div>
       )}
@@ -116,5 +165,3 @@ export default function ConsolidadoAportes() {
   )
 }
 
-const th = { padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #ccc' }
-const td = { padding: '8px 12px', borderBottom: '1px solid #eee' }
