@@ -1,3 +1,4 @@
+# Se usa OpenCode para el uso de agentes IA
 ## Skills
 Inicialmente se instaló la skill para springboot: java-springboot
 npx skills add https://github.com/github/awesome-copilot --skill java-springboot
