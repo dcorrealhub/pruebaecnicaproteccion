@@ -106,3 +106,23 @@ npm run dev              # Puerto 5173
 
 3. **Agregar prompts al README**
    > Agrega los prompts escritos en el archivo readme.
+
+
+
+4. proyecto arrancando
+banckend
+![alt text](image-1.png)
+
+frontend
+![alt text](image.png)
+
+
+aporte
+
+![alt text](image-3.png)
+
+consolidado
+![alt text](image-2.png)
+![alt text](image-4.png)
+
+
