@@ -4,12 +4,13 @@ Repositorio base para la prueba técnica de nivel senior del Centro de Ingenier�
 
 ## Entregables
 
-Todos los entregables de la prueba están en la carpeta [`entregables/`](entregables/):
+La carpeta [`entregables/`](entregables/) contiene los documentos de la prueba:
 
 | Archivo | Contenido |
 |---------|-----------|
 | [`AUDITORIA.md`](entregables/AUDITORIA.md) | Hallazgos del Reto A — revisión de código como MR |
-| [`DEFENSA.md`](entregables/DEFENSA.md) | Reto C — defensa de decisiones técnicas |
+| [`DEFENSA.md`](entregables/DEFENSA.md) | Reto C — defensa extendida de decisiones técnicas |
+| [`DEFENSA_CORTA.md`](entregables/DEFENSA_CORTA.md) | Reto C — versión resumida para presentación |
 
 ## Estructura del repositorio
 
@@ -56,6 +57,29 @@ Payload de ejemplo para el POST:
 ```
 
 ## Reto B — Construcción asistida
+
+### Qué se modificó y por qué
+
+Todo el código implementado está en `reto-b/`. El scaffold base se entregó vacío y se implementó desde cero, lo que permitió tomar decisiones de stack adicionales que en un PR sobre código existente no habrían sido viables.
+
+Decisiones tomadas sobre el scaffold base:
+
+- **TypeScript en el frontend:** el scaffold venía en JavaScript. Migrar a TypeScript en una implementación desde cero tiene costo casi nulo y aporta tipado estático, detección temprana de errores y mejor experiencia de desarrollo. En un PR sobre código existente habría sido fuera de alcance.
+- **Tailwind CSS:** agregado para estilos. Su modelo de clases utilitarias inline permite construir UI consistente rápidamente sin mantener archivos CSS separados.
+- **Autenticación JWT:** el enunciado no pedía auth explícitamente, pero en el contexto de Protección no se puede entregar un frontend y un backend sin ningún mecanismo de autenticación. Un endpoint de aportes voluntarios sin auth en una entidad financiera regulada no es una opción, así sea una prueba técnica. El token expira en 9 horas — una jornada laboral.
+
+### Configuración
+
+El backend requiere las siguientes variables de entorno (ver `.env.example`):
+
+```
+DB_URL=
+DB_USERNAME=
+DB_PASSWORD=
+API_USERNAME=
+API_PASSWORD=
+JWT_SECRET=
+```
 
 ### Base de datos (PostgreSQL vía Docker)
 

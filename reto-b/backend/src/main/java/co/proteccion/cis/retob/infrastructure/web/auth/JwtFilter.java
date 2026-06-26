@@ -1,4 +1,4 @@
-package co.proteccion.cis.retob.infrastructure.web;
+package co.proteccion.cis.retob.infrastructure.web.auth;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

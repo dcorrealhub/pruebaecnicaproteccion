@@ -6,6 +6,10 @@
 
 ---
 
+Lucho Díaz es el desarrollador junior del equipo. Esta es la revisión de su MR para el módulo de registro de aportes voluntarios.
+
+
+
 Lucho, gracias por el MR. El módulo compila y los tests pasan, lo que es un buen punto de partida. Dicho esto, encontré varios puntos que hay que resolver antes de aprobar — algunos son bloqueantes dado el contexto financiero regulado en el que corre este servicio.
 
 ---

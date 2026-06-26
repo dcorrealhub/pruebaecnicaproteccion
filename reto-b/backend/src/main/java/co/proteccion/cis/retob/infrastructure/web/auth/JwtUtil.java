@@ -1,4 +1,4 @@
-package co.proteccion.cis.retob.infrastructure.web;
+package co.proteccion.cis.retob.infrastructure.web.auth;
 
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

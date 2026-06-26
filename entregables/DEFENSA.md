@@ -51,8 +51,52 @@ Con eso resuelto, lo que falta a nivel técnico:
 
 Antes de empezar el Reto B, compacté la conversación del Reto A. Esto fue una decisión deliberada: la sesión anterior era larga y el modelo ya tenía demasiado contexto de la auditoría cargado. Compactar me permitió arrancar el Reto B con el contexto relevante preservado en memoria (decisiones técnicas, stack, criterios) pero sin el ruido de una sesión extensa. Es la misma lógica que hacer un commit antes de empezar una rama nueva — estado limpio, intención clara.
 
+Usé dos modelos con roles distintos: **Opus para la planeación** — es el modelo más capaz, ideal para razonar sobre arquitectura, tradeoffs y decisiones técnicas complejas antes de escribir una línea de código — y **Sonnet para la implementación**, que es más rápido y económico para tareas de ejecución donde el plan ya está claro. Separar planeación de implementación no es solo una decisión de costo — es también una decisión de calidad: pensar antes de codificar produce mejores resultados que codificar mientras se piensa.
+
 ### 2. ¿En qué momentos le llevaste la contraria al modelo, y por qué?
+
+Al momento de subir los cambios, el modelo quería hacer el merge directo a `master`. Le frené — la convención del repositorio es trabajar en ramas de candidato (`candidato/nombre-apellido`) y no tocar `master`. Subirlo directo habría mezclado mi entrega con el scaffold base, rompiendo la estructura que el evaluador espera. El modelo no tenía ese contexto de negocio; yo sí.
+
+El modelo quería usar `BigDecimal` para el monto. En el Reto A había argumentado a favor de `long` — pero el Reto B es un módulo distinto, aislado, donde los valores son aportes voluntarios que sí pueden tener decimales en el futuro. Aquí le di la razón, pero por las razones correctas, no porque lo dijo la IA.
+
+Cuestioné la semántica del tope mensual: el enunciado dice "supere", no "iguale". Le pedí al modelo que justificara su interpretación antes de codificar. Terminamos con `nuevoTotal > tope` (estrictamente mayor) porque "superar" en español no incluye el caso de igualdad exacta.
+
+Para el `idempotenciaKey` el modelo lo iba a generar en el `onClick` del botón. Le pregunté qué pasaba si el usuario hacía doble click — el UUID cambiaría y se registraría el aporte dos veces. Lo corregimos: el UUID se genera en el `useState` inicial del componente (al montar), no al hacer click. Eso garantiza que reintentos del mismo formulario envíen el mismo key.
+
+En el frontend propuso `step="0.01"` en el campo de monto. Los aportes son de millones, no centavos — un campo que sube de a un centavo en una app financiera colombiana no tiene sentido. Lo cambiamos a `step="100000"` con mínimo de $100.000.
 
 ### 3. ¿Qué tradeoffs tomaste? ¿Qué dejaste por fuera a propósito?
 
+**TypeScript y Tailwind sobre el scaffold base:** El scaffold venía en JavaScript plano. Como la implementación partía desde cero — sin código previo que respetar, sin equipo que alinear — me di el lujo de migrar a TypeScript y agregar Tailwind. TypeScript aporta tipado estático que previene errores en tiempo de desarrollo y da más calidad al código. Tailwind permite construir UI consistente con clases inline sin mantener CSS separado. Si esto fuera un PR sobre código existente, ninguna de las dos cosas habría sido viable — el alcance habría sido implementar lo mínimo definido sin tocar el stack del equipo.
+
+**`APORTE_REVERSADO` fuera de alcance:** El SQL del proyecto traía un tipo de evento `APORTE_REVERSADO`. Revisé el enunciado — no se pedía reversa. Implementarla sin requerimiento habría sido sobrediseño y habría introducido complejidad sin valor entregable. Quedó documentado en `NOTAS_PROCESO.md` como deuda técnica consciente.
+
+**JWT en memoria del cliente, no en `localStorage`:** El token vive en una variable de módulo en el cliente. Al recargar la página se pierde y el usuario tiene que volver a hacer login. Es el tradeoff correcto para una app financiera: nada persistido que un atacante pueda robar con XSS. Para una sesión de jornada laboral (9 horas) el costo de re-autenticarse es bajo.
+
+**Basic Auth → JWT:** Empezamos con Basic Auth por simplicidad, pero una credencial que viaja en cada request y no expira es un riesgo inaceptable en un sistema financiero. Migramos a JWT con expiración de 9 horas. El tradeoff es mayor complejidad de implementación a cambio de un vector de ataque cerrado. JWT fue el mínimo viable para este contexto: en Protección no se puede entregar un frontend y un backend sin ningún mecanismo de autenticación — exponer endpoints de aportes sin auth en una entidad financiera regulada no es una opción, así sea una prueba técnica.
+
+**Credenciales obligatorias por variable de entorno:** Sin fallback en el código. Arrancar sin `API_USERNAME`, `API_PASSWORD` o `JWT_SECRET` configurados falla inmediatamente. Eso es intencional — un sistema financiero no debería poder arrancar sin autenticación configurada, ni siquiera en desarrollo.
+
+**Canal hardcodeado como "WEB":** No se pedía selección de canal en el enunciado. Dejarlo como constante en el frontend es suficiente para el alcance y evita agregar campos sin requerimiento.
+
+**Separación del paquete `auth`:** Los componentes de seguridad (`AuthController`, `JwtFilter`, `JwtUtil`, `SecurityConfig`, `UserDetailsConfig`) viven en `infrastructure.web.auth`, separados del resto de la capa web. La razón es cohesión: todo lo relacionado con autenticación y autorización cambia junto — si mañana se cambia el mecanismo de auth (OAuth2, API keys, otro proveedor), se toca un solo paquete sin afectar los controladores de negocio ni los DTOs. Mezclar clases de seguridad con controladores de dominio en el mismo paquete hace más difícil entender qué hace cada cosa y aumenta el riesgo de modificar lo que no corresponde.
+
 ### 4. ¿Qué falta para que esto sea apto para producción en un entorno SFC?
+
+Lo mismo que en el Reto A aplica acá — las conversaciones con negocio y el arquitecto van primero. Adicionalmente, específico para este módulo:
+
+- **Gestión de secretos real:** Las variables de entorno son el mínimo. En producción el `JWT_SECRET`, las credenciales de BD y las credenciales de API deberían vivir en un gestor de secretos (AWS Secrets Manager, HashiCorp Vault) con rotación automática. Un secreto que no rota es una vulnerabilidad latente.
+
+- **HTTPS obligatorio:** JWT en texto plano sobre HTTP es equivalente a no tener seguridad. En producción el transporte debe ser TLS y el servidor debe rechazar conexiones HTTP.
+
+- **Refresh tokens:** Un token de 9 horas que no se puede renovar obliga al usuario a re-autenticarse en mitad de la jornada si el sistema lo necesita más tiempo. Para producción se necesita un mecanismo de refresh con tokens de corta vida y refresh tokens de vida larga almacenados de forma segura.
+
+- **Análisis de código estático:** Integrar SonarQube o similar al pipeline de CI. Detecta vulnerabilidades, code smells y cobertura de forma automática en cada PR. En un entorno SFC esto no es opcional.
+
+- **Usuarios en base de datos:** El usuario actual está centralizado en memoria (InMemoryUserDetailsManager). En producción los usuarios deben estar en BD con contraseñas hasheadas, roles granulares y soporte para gestión del ciclo de vida (creación, bloqueo, expiración). Tener el usuario hardcodeado en el proceso es suficiente para una prueba técnica, pero no escala ni permite auditar accesos individuales.
+
+- **Rate limiting en `/auth/login`:** Sin límite de intentos, el endpoint de login es vulnerable a fuerza bruta. Mínimo un límite por IP antes de exponer esto a internet.
+
+- **Logs de auditoría:** Cada login exitoso, cada intento fallido, cada aporte registrado debería quedar en un log de auditoría inmutable. En un entorno SFC esto es un requerimiento regulatorio, no opcional.
+
+- **Pruebas de integración y contrato:** Los tests actuales son unitarios. Falta cobertura del flujo completo: autenticación → registro de aporte → consulta de consolidado, incluyendo los casos de borde (tope excedido, periodo futuro, clave duplicada).

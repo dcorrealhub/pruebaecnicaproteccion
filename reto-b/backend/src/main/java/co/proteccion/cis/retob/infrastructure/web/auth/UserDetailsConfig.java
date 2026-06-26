@@ -1,4 +1,4 @@
-package co.proteccion.cis.retob.infrastructure.web;
+package co.proteccion.cis.retob.infrastructure.web.auth;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
