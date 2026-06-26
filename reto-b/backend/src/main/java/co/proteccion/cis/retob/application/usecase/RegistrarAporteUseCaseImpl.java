@@ -1,26 +1,19 @@
 package co.proteccion.cis.retob.application.usecase;
 
 import co.proteccion.cis.retob.domain.model.Aporte;
+import co.proteccion.cis.retob.domain.model.SaldoMensual;
 import co.proteccion.cis.retob.domain.port.in.RegistrarAporteUseCase;
 import co.proteccion.cis.retob.domain.port.out.AporteRepositoryPort;
 import co.proteccion.cis.retob.domain.port.out.SaldoRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
-/**
- * Implementación del caso de uso de registro de aportes.
- *
- * TODO (candidato): implementar la lógica de negocio:
- *   1. Verificar idempotencia: si ya existe un aporte con la misma idempotenciaKey, retornarlo.
- *   2. Validar monto positivo y que no supere el tope mensual del afiliado.
- *   3. Marcar para revisión si el monto supera {@code umbralRevision}.
- *   4. Actualizar el saldo mensual del afiliado de forma concurrentemente segura.
- *   5. Persistir el aporte y publicar el evento correspondiente.
- *   6. Envolver todo en una transacción (@Transactional).
- */
 @Service
 @RequiredArgsConstructor
 public class RegistrarAporteUseCaseImpl implements RegistrarAporteUseCase {
@@ -35,8 +28,43 @@ public class RegistrarAporteUseCaseImpl implements RegistrarAporteUseCase {
     private BigDecimal umbralRevision;
 
     @Override
+    @Transactional
     public Aporte registrar(RegistrarAporteCommand command) {
-        // TODO: implementar
-        throw new UnsupportedOperationException("Pendiente de implementación");
+        var existente = aporteRepository.findByIdempotenciaKey(command.idempotenciaKey());
+        if (existente.isPresent()) {
+            return existente.get();
+        }
+
+        var monto = command.monto();
+        if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El monto debe ser positivo");
+        }
+
+        String periodo = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
+
+        var saldoOpt = saldoRepository.findByAfiliadoIdAndMes(command.afiliadoId(), periodo);
+        var saldo = saldoOpt.orElseGet(() -> saldoRepository.inicializar(command.afiliadoId(), periodo));
+
+        var nuevoTotal = saldo.calcularNuevoTotal(monto);
+        if (nuevoTotal.compareTo(topeMensual) > 0) {
+            throw new IllegalArgumentException("El monto supera el tope mensual permitido");
+        }
+
+        saldoRepository.guardar(saldo.conTotal(nuevoTotal));
+
+        var marcadaRevision = monto.compareTo(umbralRevision) > 0;
+
+        var aporte = new Aporte(
+                null,
+                command.afiliadoId(),
+                monto,
+                LocalDate.now(),
+                command.canal(),
+                periodo,
+                marcadaRevision,
+                command.idempotenciaKey()
+        );
+
+        return aporteRepository.guardar(aporte);
     }
 }
