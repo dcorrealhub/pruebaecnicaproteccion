@@ -163,6 +163,41 @@ la logica de negocio intencionalmente vacia (stubs con `throw new UnsupportedOpe
 > y CSS profesional sin dependencias externas, y prepara las secciones de evidencias visuales
 > en el README con carpeta docs/images/.
 
+### Prompt 6 — Sprint de Madurez Técnica, Cumplimiento SFC y Observabilidad
+
+> Actúa como nuestro Tech Lead Senior. Vamos a implementar de inmediato el plan de madurez técnica para el Reto B enfocado en las tres funcionalidades prioritarias que identificaste (#2, #4 y #6). Esto elevará el nivel de la solución ante los estándares del CIS y la SFC sin sobrecomplicar el Lead Time[cite: 1].
+>
+> Por favor, ejecuta los siguientes cambios de manera secuencial:
+>
+> 1. ENUM PARA CANAL DE APORTE (Funcionalidad #4):
+>    - Crea el enum `CanalAporte` con los valores `WEB`, `APP_MOVIL`, `SUCURSAL` en la capa de dominio (`domain/model/`).
+>    - Actualiza el modelo `Aporte`, la entidad `AporteEntity` y el DTO `RegistrarAporteRequest` para utilizar este enum en lugar de un String libre[cite: 2].
+>    - Asegúrate de que los mappers y la validación de Jackson manejen correctamente la conversión[cite: 2].
+>
+> 2. ENDPOINT DE COMPLIANCE / REVISIÓN (Funcionalidad #2):
+>    - Agrega en `SpringDataAporteRepository` el método `findByMarcadaRevisionTrue()`[cite: 2].
+>    - Expón esta consulta creando un nuevo método en el puerto de salida, un caso de uso específico de lectura (cumpliendo CQRS), y un endpoint limpio en el controlador: `GET /api/aportes/pendientes-revision`[cite: 2].
+>    - Documenta brevemente el endpoint en el controlador con las anotaciones de Swagger indicando que su propósito es el cumplimiento normativo SFC[cite: 1, 2].
+>
+> 3. ACTUATOR Y OBSERVABILIDAD (Funcionalidad #6):
+>    - Agrega la dependencia `spring-boot-starter-actuator` en el pom.xml del backend[cite: 2].
+>    - En `application.properties`, configura para que únicamente se exponga el endpoint de salud de forma segura[cite: 2]:
+>      ```properties
+>      management.endpoints.web.exposure.include=health
+>      management.endpoint.health.show-details=always
+>      ```
+>
+> 4. ACTUALIZACIÓN DE DOCUMENTACIÓN:
+>    - Añade estas tres características en la tabla del plan de implementación ejecutado en tu README.md, detallando su valor técnico/regulatorio[cite: 2].
+>
+> REGLA DE COMMIT ESTRICTA:
+> Realiza commits atómicos para cada hito usando la convención pactada[cite: 2]:
+> - "feat(reto-b): tipar canal de aporte como enum en el dominio"[cite: 2]
+> - "feat(reto-b): implementar endpoint de cumplimiento para aportes pendientes de revision"[cite: 2]
+> - "feat(reto-b): agregar spring boot actuator para monitoreo de salud"[cite: 2]
+>
+> Verifica que `./mvnw test` pase en limpio, haz el git push final hacia la rama remota y confírmame cuando esté listo[cite: 2].
+
 ---
 
 ## 📸 Evidencias Visuales de Funcionamiento

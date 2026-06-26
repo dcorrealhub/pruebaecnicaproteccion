@@ -130,29 +130,44 @@ El proxy de Vite redirige `/api/*` a `http://localhost:8082`. No modificar esta 
 
 ---
 
-## Tests minimos antes de commitear
+## Suite de tests
+
+### Estructura
+
+```
+src/test/
+├── resources/
+│   ├── application-test.properties          ← perfil H2, Flyway off, springdoc off
+│   └── mockito-extensions/
+│       └── org.mockito.plugins.MockMaker    ← mock maker subclass (sin inline agent)
+└── java/co/proteccion/cis/retob/
+    ├── support/AporteMother.java             ← fabrica de objetos de prueba
+    ├── domain/model/SaldoMensualTest.java    ← JUnit 5 puro, sin Spring
+    ├── application/usecase/
+    │   ├── RegistrarAporteUseCaseImplTest.java
+    │   └── ConsultarAportesUseCaseImplTest.java
+    └── infrastructure/web/AporteControllerTest.java
+```
+
+### Convenciones por nivel
+
+| Nivel | Herramienta | Que testea |
+|-------|-------------|------------|
+| Dominio | JUnit 5 puro | Inmutabilidad y calculo en SaldoMensual |
+| Aplicacion | `@ExtendWith(MockitoExtension.class)` | Reglas de negocio en use cases |
+| Web | `@WebMvcTest` + `@MockitoBean` | Contratos HTTP, validaciones, excepciones |
+| Contexto completo | `@SpringBootTest` + `@ActiveProfiles("test")` | Arranque del contexto con H2 |
+
+### Notas de implementacion
+
+- `@Value` fields (`topeMensual`, `umbralRevision`) no son `final`, por lo que `@InjectMocks` no los inyecta. Usar `ReflectionTestUtils.setField()` en `@BeforeEach`.
+- `ConsolidadoAportes` es un `record` — usar sintaxis de componente (`.totalAportado()`, no `.getTotalAportado()`).
+- `maven-surefire-plugin` con `-XX:+EnableDynamicAgentLoading -Xshare:off --enable-native-access=ALL-UNNAMED` suprime warnings de JVM en ejecucion.
+- `springdoc.api-docs.enabled=false` en el perfil test evita que la autoconfiguracion de springdoc interfiera con `@WebMvcTest`.
+- `@MockitoBean` (Spring Boot 3.4+) reemplaza el `@MockBean` deprecado.
+
+### Antes de cada commit
 
 ```bash
-# Compilar y testear
-cd backend && ./mvnw test
-
-# Prueba idempotencia: misma idempotenciaKey => misma respuesta, sin duplicado en DB
-curl -X POST http://localhost:8082/api/aportes \
-  -H "Content-Type: application/json" \
-  -d '{"afiliadoId":"AF-001","monto":100000,"canal":"WEB","idempotenciaKey":"uuid-1"}'
-
-# Segunda llamada identica -> misma respuesta (no 500, no duplicado)
-curl -X POST http://localhost:8082/api/aportes \
-  -H "Content-Type: application/json" \
-  -d '{"afiliadoId":"AF-001","monto":100000,"canal":"WEB","idempotenciaKey":"uuid-1"}'
-
-# Prueba tope: monto > 10.000.000 -> 422
-curl -X POST http://localhost:8082/api/aportes \
-  -H "Content-Type: application/json" \
-  -d '{"afiliadoId":"AF-001","monto":11000000,"canal":"WEB","idempotenciaKey":"uuid-tope"}'
-
-# Prueba revision: monto > 5.000.000 -> marcadaRevision: true
-curl -X POST http://localhost:8082/api/aportes \
-  -H "Content-Type: application/json" \
-  -d '{"afiliadoId":"AF-002","monto":6000000,"canal":"APP_MOVIL","idempotenciaKey":"uuid-rev"}'
+cd backend && ./mvnw test   # 32 tests, 0 failures, BUILD SUCCESS
 ```
