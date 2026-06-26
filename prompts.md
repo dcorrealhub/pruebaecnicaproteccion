@@ -31,3 +31,7 @@
 12. Ejecutar los comandos de test y de run y valida que el aplicativo esté arrancando correctamente.
 
 13. Agrega los prompts agregados al momento.
+
+## Sesión 4 — Agentes y correcciones
+
+14. Ahora vamos para el código que está en la carpeta reto-b, lee lo que dice en el archivo reto-b y crea los agentes necesarios que sean expertos para frontend, backend y testing.
