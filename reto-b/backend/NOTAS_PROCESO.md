@@ -6,7 +6,7 @@ npx skills add https://github.com/github/awesome-copilot --skill java-springboot
 Luego, se notó que existe una arquitectura hexagonal por lo que se usa también otra skill para el agente: hexagonal-architecture
 px skills add https://github.com/affaan-m/everything-claude-code --skill hexagonal-architecture
 
-Prompts:
+# Prompts:
 ## 1.
 Actúa como un desarrolador senior, experto en springboot. 
 Tienes a tu cargo un proyecto sobre registro y consulta de aportes voluntarios construido con una 

@@ -1,45 +1,61 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { registrarAporte } from '../api/aportesApi'
 
-/**
- * TODO (candidato): implementar el formulario de registro de aporte.
- *
- * Campos requeridos:
- *   - afiliadoId (texto, sintético — ej: "AF-001")
- *   - monto (número, positivo)
- *   - canal (selector: APP_MOVIL, WEB, SUCURSAL)
- *   - idempotenciaKey: generar automáticamente con crypto.randomUUID()
- *
- * Comportamiento esperado:
- *   - Validar monto > 0 antes de enviar
- *   - Mostrar mensaje de éxito o error según la respuesta
- *   - Si el aporte queda marcado para revisión, indicarlo claramente
- */
+const COLOR_ERROR = '#b91c1c'
+const COLOR_WARNING = '#d97706'
+const COLOR_MUTED = '#6b7280'
+
+function validarCampos({ afiliadoId, monto }) {
+  const errores = {}
+  if (!afiliadoId.trim()) {
+    errores.afiliadoId = 'El ID del afiliado es obligatorio.'
+  }
+  const montoNum = parseFloat(monto)
+  if (!monto || isNaN(montoNum) || montoNum <= 0) {
+    errores.monto = 'El monto debe ser un número positivo mayor a cero.'
+  }
+  return errores
+}
+
 export default function RegistrarAporte() {
   const [form, setForm] = useState({ afiliadoId: '', monto: '', canal: 'APP_MOVIL' })
   const [resultado, setResultado] = useState(null)
   const [error, setError] = useState(null)
   const [cargando, setCargando] = useState(false)
+  const [errores, setErrores] = useState({})
 
-  async function handleSubmit(e) {
+  const actualizarCampo = useCallback((campo, valor) => {
+    setForm(f => ({ ...f, [campo]: valor }))
+    setErrores(e => {
+      if (!e[campo]) return e
+      const next = { ...e }
+      delete next[campo]
+      return next
+    })
+  }, [])
+
+  function handleSubmit(e) {
     e.preventDefault()
     setError(null)
     setResultado(null)
+
+    const v = validarCampos(form)
+    setErrores(v)
+    if (Object.keys(v).length > 0) return
+
     setCargando(true)
 
-    try {
-      // TODO: completar la llamada, incluir idempotenciaKey
-      const data = await registrarAporte({
-        ...form,
-        monto: parseFloat(form.monto),
-        idempotenciaKey: crypto.randomUUID(),
+    registrarAporte({
+      ...form,
+      monto: parseFloat(form.monto),
+      idempotenciaKey: crypto.randomUUID(),
+    })
+      .then(data => {
+        setResultado(data)
+        setForm(f => ({ ...f, monto: '' }))
       })
-      setResultado(data)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setCargando(false)
-    }
+      .catch(err => setError(err.message))
+      .finally(() => setCargando(false))
   }
 
   return (
@@ -48,14 +64,17 @@ export default function RegistrarAporte() {
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 400 }}>
         <label>
-          ID Afiliado (sintético)
+          ID Afiliado
           <input
             value={form.afiliadoId}
-            onChange={e => setForm(f => ({ ...f, afiliadoId: e.target.value }))}
+            onChange={e => actualizarCampo('afiliadoId', e.target.value)}
             placeholder="AF-001"
             required
             style={{ display: 'block', width: '100%', marginTop: 4 }}
           />
+          {errores.afiliadoId && (
+            <span role="alert" style={{ color: COLOR_ERROR, fontSize: 13 }}>{errores.afiliadoId}</span>
+          )}
         </label>
 
         <label>
@@ -65,10 +84,14 @@ export default function RegistrarAporte() {
             min="0.01"
             step="0.01"
             value={form.monto}
-            onChange={e => setForm(f => ({ ...f, monto: e.target.value }))}
+            onChange={e => actualizarCampo('monto', e.target.value)}
+            placeholder="0.00"
             required
             style={{ display: 'block', width: '100%', marginTop: 4 }}
           />
+          {errores.monto && (
+            <span role="alert" style={{ color: COLOR_ERROR, fontSize: 13 }}>{errores.monto}</span>
+          )}
         </label>
 
         <label>
@@ -84,20 +107,23 @@ export default function RegistrarAporte() {
           </select>
         </label>
 
-        <button type="submit" disabled={cargando}>
+        <button type="submit" disabled={cargando} style={{ alignSelf: 'flex-start' }}>
           {cargando ? 'Registrando...' : 'Registrar'}
         </button>
       </form>
 
       {error && (
-        <p style={{ color: 'red', marginTop: 16 }}>Error: {error}</p>
+        <p role="alert" style={{ color: COLOR_ERROR, marginTop: 16 }}>{error}</p>
       )}
 
       {resultado && (
-        <div style={{ marginTop: 16, padding: 12, background: '#f0f0f0' }}>
-          <p>Aporte registrado. ID: {resultado.id}</p>
+        <div role="status" style={{ marginTop: 16, padding: 16, border: '1px solid #d1d5db', borderRadius: 4 }}>
+          <p style={{ margin: 0 }}>Aporte registrado correctamente.</p>
+          <p style={{ margin: '4px 0 0', fontSize: 13, color: COLOR_MUTED }}>ID: {resultado.id}</p>
           {resultado.marcadaRevision && (
-            <p style={{ color: 'orange' }}>Este aporte quedó marcado para revisión.</p>
+            <p style={{ color: COLOR_WARNING, margin: '8px 0 0', fontWeight: 500 }}>
+              Este aporte superó el umbral definido y quedó marcado para revisión.
+            </p>
           )}
         </div>
       )}
