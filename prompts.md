@@ -35,3 +35,15 @@
 ## Sesión 4 — Agentes y correcciones
 
 14. Ahora vamos para el código que está en la carpeta reto-b, lee lo que dice en el archivo reto-b y crea los agentes necesarios que sean expertos para frontend, backend y testing.
+
+## Sesión 5 — Plan TDD e implementación
+
+15. Diseñame un plan de desarrollo utilizando Test-Driven Development, indicando el agente más adecuado para cada etapa.
+
+16. Escríbeme el plan en la carpeta doc.
+
+17. Ejecuta el backend del reto b y arregla los errores encontrados.
+
+18. Vamos por la fase 1 con los pasos 1.1 y 1.2.
+
+19. Escribe los últimos prompts que se han agregado al momento.
