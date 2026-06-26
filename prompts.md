@@ -17,3 +17,17 @@
 6. Ejecútame estos comandos ./mvnw test y arréglame los errores que aparecen en el archivo.
 
 7. Agrega los prompts en el archivo correspondiente.
+
+## Sesión 3 — Validación y correcciones
+
+8. Por medio de curl arma el endpoint para validar que este funcionando.
+
+9. Agrega esos endpoint dentro de un archivo readme dentro de la carpeta reto-a.
+
+10. Crea un agente experto en backend de java.
+
+11. @java-backend-expert realiza una lectura del archivo revision-reto-a y realiza las debidas correcciones que en el se indican.
+
+12. Ejecutar los comandos de test y de run y valida que el aplicativo esté arrancando correctamente.
+
+13. Agrega los prompts agregados al momento.
