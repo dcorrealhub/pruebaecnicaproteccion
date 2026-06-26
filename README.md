@@ -2,6 +2,15 @@
 
 Repositorio base para la prueba técnica de nivel senior del Centro de Ingeniería de Software (CIS).
 
+## Entregables
+
+Todos los entregables de la prueba están en la carpeta [`entregables/`](entregables/):
+
+| Archivo | Contenido |
+|---------|-----------|
+| [`AUDITORIA.md`](entregables/AUDITORIA.md) | Hallazgos del Reto A — revisión de código como MR |
+| [`DEFENSA.md`](entregables/DEFENSA.md) | Reto C — defensa de decisiones técnicas |
+
 ## Estructura del repositorio
 
 ```
