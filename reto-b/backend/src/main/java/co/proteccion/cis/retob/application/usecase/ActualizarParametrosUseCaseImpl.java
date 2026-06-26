@@ -18,6 +18,11 @@ public class ActualizarParametrosUseCaseImpl implements ActualizarParametrosUseC
     @Override
     @Transactional
     public ParametrosFondo actualizar(ActualizarParametrosCommand command) {
+        if (command.umbralRevision().compareTo(command.topeMensual()) >= 0) {
+            throw new IllegalArgumentException(
+                    "El umbral de revisión (" + command.umbralRevision() +
+                    ") debe ser menor al tope mensual (" + command.topeMensual() + ").");
+        }
         ParametrosFondo nuevo = new ParametrosFondo(
                 null,
                 command.topeMensual(),

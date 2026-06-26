@@ -16,8 +16,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +28,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/aportes")
 @RequiredArgsConstructor
+@Validated
 @Tag(name = "Aportes", description = "Registro, consulta y gestión del ciclo de vida de aportes voluntarios")
 public class AporteController {
 
@@ -73,15 +77,21 @@ public class AporteController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Consolidado calculado correctamente"),
-            @ApiResponse(responseCode = "400", description = "Parámetros de consulta inválidos")
+            @ApiResponse(responseCode = "400", description = "Parámetros inválidos",
+                    content = @Content(schema = @Schema(example = "{\"error\":\"VALIDACION_FALLIDA\",\"campos\":{\"periodoDesde\":\"...\"}}")))
     })
     @GetMapping("/consolidado")
     public ConsolidadoResponse consolidado(
             @Parameter(description = "ID sintético del afiliado", example = "AF-001")
+            @NotBlank(message = "El afiliadoId es obligatorio")
             @RequestParam String afiliadoId,
+
             @Parameter(description = "Periodo inicial (YYYY-MM)", example = "2026-01")
+            @Pattern(regexp = "\\d{4}-\\d{2}", message = "El periodo debe tener formato YYYY-MM")
             @RequestParam String periodoDesde,
+
             @Parameter(description = "Periodo final (YYYY-MM)", example = "2026-06")
+            @Pattern(regexp = "\\d{4}-\\d{2}", message = "El periodo debe tener formato YYYY-MM")
             @RequestParam String periodoHasta) {
         var query = new ConsultarAportesQuery(afiliadoId, periodoDesde, periodoHasta);
         return ConsolidadoResponse.from(consultarAportesUseCase.consultar(query));
@@ -100,7 +110,7 @@ public class AporteController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Estado actualizado correctamente"),
-            @ApiResponse(responseCode = "400", description = "Transición de estado inválida",
+            @ApiResponse(responseCode = "400", description = "Transición de estado inválida o datos inválidos",
                     content = @Content(schema = @Schema(example = "{\"error\":\"TRANSICION_INVALIDA\",\"mensaje\":\"...\"}"))),
             @ApiResponse(responseCode = "404", description = "Aporte no encontrado",
                     content = @Content(schema = @Schema(example = "{\"error\":\"APORTE_NO_ENCONTRADO\",\"mensaje\":\"...\"}")))
