@@ -65,7 +65,9 @@ El manejo de errores centralizado permite que la API devuelva respuestas uniform
 `GlobalExceptionHandler` traduce: validación → **400**, regla de negocio (tope/transición)
 → **422**, aporte inexistente → **404**, inesperado → **500**. Cuerpo uniforme `ErrorResponse`.
 
-## 7. Pruebas (32 en total, todas verdes)
+## 7. Pruebas (backend: 32 · frontend: 16, todas verdes)
+
+**Backend (`mvn test`):**
 
 - **Dominio (unitarias)**: invariantes de `Aporte` (monto positivo, periodo derivado,
   transiciones válidas/ inválidas) y de `ParametrosAporte` (positivos, umbral ≤ tope).
@@ -77,6 +79,15 @@ El manejo de errores centralizado permite que la API devuelva respuestas uniform
   pendiente que reserva cupo y bloquea un aporte posterior, rechazo que libera cupo,
   ciclo pendiente→aprobado reflejado en el consolidado, y configuración de parámetros
   (lectura, actualización runtime y validaciones).
+
+**Frontend (`npm test`, Vitest + React Testing Library):**
+
+- **API (`aportesApi`)**: métodos hacen el request correcto (URL/método/cuerpo) y
+  propagan el mensaje de error del backend (incluido el detalle por campo).
+- **Componentes**: `RegistrarAporte` valida monto, muestra el estado sin exponer el id
+  de BD, y **reutiliza la `idempotenciaKey` tras un fallo / genera una nueva tras el
+  éxito**; `ConsolidadoAportes` precarga el rango de 1 año, calcula el total comprometido
+  y permite aprobar desde la tabla; `Configuracion` carga, guarda y valida (umbral ≤ tope).
 
 Qué quedó **deliberadamente fuera** por alcance: autenticación/autorización, paginación
 del detalle, e idempotencia con expiración/TTL de claves. Se documentan como límites
