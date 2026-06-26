@@ -146,3 +146,48 @@ la logica de negocio intencionalmente vacia (stubs con `throw new UnsupportedOpe
 > Para el CLAUDE.md agrega la instruccion de realizar commits estrictamente a la rama
 > "candidato/tomas-rios", la estructura de los commits debe ser feat(reto-b): descripcion
 > o fix(reto-b): descripcion.
+
+### Prompt 3 — Implementacion completa
+
+> Procede
+
+### Prompt 4 — Levantar servicios
+
+> Levanta el proyecto y dejame las url del back y el front para testear
+
+### Prompt 5 — Pulido final
+
+> Actua como nuestro Tech Lead Senior. Vamos a pulir y llevar a un nivel superior el Reto B
+> antes de dar por cerrado el modulo practico. Agrega documentacion Swagger/OpenAPI con
+> springdoc-openapi, mejora la interfaz React con validaciones visuales y alertas contextuales
+> y CSS profesional sin dependencias externas, y prepara las secciones de evidencias visuales
+> en el README con carpeta docs/images/.
+
+---
+
+## 📸 Evidencias Visuales de Funcionamiento
+
+Las siguientes capturas documentan el estado final del modulo Reto B en ejecucion local.
+Para agregar evidencias: guarda las imagenes en `docs/images/` y el Markdown ya las enlaza.
+
+### Formulario de Registro
+
+![Formulario de Registro](docs/images/formulario_registro.png)
+
+Vista del formulario de registro de aporte voluntario con validaciones en tiempo real,
+preview del monto en formato COP y alerta contextual segun resultado
+(exito, revision requerida o tope mensual superado).
+
+### Tabla de Consolidado
+
+![Tabla de Consolidado](docs/images/tabla_consolidado.png)
+
+Vista del consolidado de aportes con banner de total, tabla detallada por aporte
+y badges de estado (Aprobado / Requiere revision).
+
+### Swagger UI — Documentacion de API
+
+![Swagger UI](docs/images/swagger_ui.png)
+
+Documentacion interactiva disponible en `http://localhost:8082/swagger-ui.html`.
+Incluye descripcion de endpoints, esquemas de request/response y codigos de error.
