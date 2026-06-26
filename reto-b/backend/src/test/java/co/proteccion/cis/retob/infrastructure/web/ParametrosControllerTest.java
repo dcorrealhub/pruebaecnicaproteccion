@@ -35,7 +35,7 @@ class ParametrosControllerTest {
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private ParametrosFondo parametrosStub() {
-        return new ParametrosFondo(1L,
+        return new ParametrosFondo("param-uuid-001",
                 new BigDecimal("10000000"), new BigDecimal("5000000"),
                 "SYSTEM", OffsetDateTime.now(), "Carga inicial");
     }
@@ -77,7 +77,7 @@ class ParametrosControllerTest {
         @Test
         @DisplayName("devuelve lista con todos los registros históricos")
         void historial_con_registros() throws Exception {
-            ParametrosFondo p2 = new ParametrosFondo(2L,
+            ParametrosFondo p2 = new ParametrosFondo("param-uuid-002",
                     new BigDecimal("12000000"), new BigDecimal("6000000"),
                     "ADMIN", OffsetDateTime.now(), "Ajuste Q2");
             when(consultarUseCase.consultarHistorial()).thenReturn(List.of(parametrosStub(), p2));
@@ -108,7 +108,7 @@ class ParametrosControllerTest {
         @Test
         @DisplayName("parámetros válidos devuelven 201 con el nuevo registro")
         void actualizar_exitoso() throws Exception {
-            ParametrosFondo nuevo = new ParametrosFondo(2L,
+            ParametrosFondo nuevo = new ParametrosFondo("param-uuid-003",
                     new BigDecimal("12000000"), new BigDecimal("4000000"),
                     "ADMIN", OffsetDateTime.now(), "Ajuste Q3");
             when(actualizarUseCase.actualizar(any())).thenReturn(nuevo);

@@ -4,13 +4,13 @@ import java.time.OffsetDateTime;
 
 public final class Afiliado {
 
-    private final Long id;
+    private final String id;
     private final String afiliadoId;
     private final String nombre;
     private final EstadoAfiliado estado;
     private final OffsetDateTime creadoEn;
 
-    public Afiliado(Long id, String afiliadoId, String nombre, EstadoAfiliado estado, OffsetDateTime creadoEn) {
+    public Afiliado(String id, String afiliadoId, String nombre, EstadoAfiliado estado, OffsetDateTime creadoEn) {
         this.id = id;
         this.afiliadoId = afiliadoId;
         this.nombre = nombre;
@@ -18,9 +18,9 @@ public final class Afiliado {
         this.creadoEn = creadoEn;
     }
 
-    public Long getId()                { return id; }
-    public String getAfiliadoId()      { return afiliadoId; }
-    public String getNombre()          { return nombre; }
-    public EstadoAfiliado getEstado()  { return estado; }
-    public OffsetDateTime getCreadoEn() { return creadoEn; }
+    public String getId()                { return id; }
+    public String getAfiliadoId()        { return afiliadoId; }
+    public String getNombre()            { return nombre; }
+    public EstadoAfiliado getEstado()    { return estado; }
+    public OffsetDateTime getCreadoEn()  { return creadoEn; }
 }

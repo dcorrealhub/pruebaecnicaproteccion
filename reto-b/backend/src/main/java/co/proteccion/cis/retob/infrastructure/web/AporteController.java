@@ -32,53 +32,37 @@ import java.util.List;
 @Tag(name = "Aportes", description = "Registro, consulta y gestión del ciclo de vida de aportes voluntarios")
 public class AporteController {
 
-    private final RegistrarAporteUseCase registrarAporteUseCase;
-    private final ConsultarAportesUseCase consultarAportesUseCase;
+    private final RegistrarAporteUseCase     registrarAporteUseCase;
+    private final ConsultarAportesUseCase    consultarAportesUseCase;
     private final CambiarEstadoAporteUseCase cambiarEstadoAporteUseCase;
     private final ConsultarRevisionesUseCase consultarRevisionesUseCase;
 
-    @Operation(
-            summary = "Registrar un aporte voluntario",
+    @Operation(summary = "Registrar un aporte voluntario",
             description = """
-                    Registra un aporte al fondo voluntario. La operación es **idempotente**:
-                    si se reenvía la misma `idempotenciaKey`, se retorna el aporte original sin duplicar.
-
-                    El estado resultante es:
-                    - `PENDIENTE` si el monto no supera el umbral de revisión
-                    - `EN_REVISION` si el monto supera el umbral configurado en parámetros
-                    """
-    )
+                    Idempotente por `idempotenciaKey`. Estado resultante:
+                    - `PENDIENTE` si monto ≤ umbral de revisión
+                    - `EN_REVISION` si monto > umbral
+                    """)
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Aporte registrado correctamente"),
-            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos",
-                    content = @Content(schema = @Schema(example = "{\"error\":\"VALIDACION_FALLIDA\",\"mensaje\":\"...\"}"))),
-            @ApiResponse(responseCode = "404", description = "Afiliado no encontrado",
-                    content = @Content(schema = @Schema(example = "{\"error\":\"AFILIADO_NO_ENCONTRADO\",\"mensaje\":\"...\"}"))),
-            @ApiResponse(responseCode = "422", description = "Tope mensual excedido",
-                    content = @Content(schema = @Schema(example = "{\"error\":\"TOPE_MENSUAL_EXCEDIDO\",\"mensaje\":\"...\"}"))),
-            @ApiResponse(responseCode = "409", description = "Conflicto de concurrencia en saldo mensual",
-                    content = @Content(schema = @Schema(example = "{\"error\":\"CONFLICTO_CONCURRENCIA\",\"mensaje\":\"...\"}")))
+            @ApiResponse(responseCode = "201", description = "Aporte registrado"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos",
+                    content = @Content(schema = @Schema(example = "{\"error\":\"VALIDACION_FALLIDA\"}"))),
+            @ApiResponse(responseCode = "404", description = "Afiliado no encontrado"),
+            @ApiResponse(responseCode = "422", description = "Tope mensual excedido"),
+            @ApiResponse(responseCode = "409", description = "Conflicto de concurrencia")
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public AporteResponse registrar(@Valid @RequestBody RegistrarAporteRequest req) {
-        var command = new RegistrarAporteCommand(
-                req.afiliadoId(),
-                req.monto(),
-                req.canal(),
-                req.idempotenciaKey()
-        );
-        return AporteResponse.from(registrarAporteUseCase.registrar(command));
+        return AporteResponse.from(registrarAporteUseCase.registrar(
+                new RegistrarAporteCommand(req.afiliadoId(), req.monto(), req.canal(), req.idempotenciaKey())));
     }
 
-    @Operation(
-            summary = "Consolidado de aportes por periodo",
-            description = "Retorna el total aportado y el detalle de cada aporte de un afiliado en el rango de periodos indicado (formato `YYYY-MM`)."
-    )
+    @Operation(summary = "Consolidado de aportes por periodo",
+            description = "Total aportado y detalle de aportes en el rango YYYY-MM indicado.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Consolidado calculado correctamente"),
-            @ApiResponse(responseCode = "400", description = "Parámetros inválidos",
-                    content = @Content(schema = @Schema(example = "{\"error\":\"VALIDACION_FALLIDA\",\"campos\":{\"periodoDesde\":\"...\"}}")))
+            @ApiResponse(responseCode = "200", description = "Consolidado calculado"),
+            @ApiResponse(responseCode = "400", description = "Formato de periodo inválido")
     })
     @GetMapping("/consolidado")
     public ConsolidadoResponse consolidado(
@@ -93,52 +77,37 @@ public class AporteController {
             @Parameter(description = "Periodo final (YYYY-MM)", example = "2026-06")
             @Pattern(regexp = "\\d{4}-\\d{2}", message = "El periodo debe tener formato YYYY-MM")
             @RequestParam String periodoHasta) {
-        var query = new ConsultarAportesQuery(afiliadoId, periodoDesde, periodoHasta);
-        return ConsolidadoResponse.from(consultarAportesUseCase.consultar(query));
+        return ConsolidadoResponse.from(consultarAportesUseCase.consultar(
+                new ConsultarAportesQuery(afiliadoId, periodoDesde, periodoHasta)));
     }
 
-    @Operation(
-            summary = "Cambiar estado de un aporte",
+    @Operation(summary = "Cambiar estado de un aporte",
             description = """
-                    Aplica una transición de estado al aporte e inserta un registro inmutable
-                    en el historial de revisiones.
-
                     Transiciones válidas:
                     - `PENDIENTE` → `EN_REVISION` o `APROBADO`
                     - `EN_REVISION` → `APROBADO` o `RECHAZADO`
-                    """
-    )
+                    """)
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Estado actualizado correctamente"),
-            @ApiResponse(responseCode = "400", description = "Transición de estado inválida o datos inválidos",
-                    content = @Content(schema = @Schema(example = "{\"error\":\"TRANSICION_INVALIDA\",\"mensaje\":\"...\"}"))),
-            @ApiResponse(responseCode = "404", description = "Aporte no encontrado",
-                    content = @Content(schema = @Schema(example = "{\"error\":\"APORTE_NO_ENCONTRADO\",\"mensaje\":\"...\"}")))
+            @ApiResponse(responseCode = "200", description = "Estado actualizado"),
+            @ApiResponse(responseCode = "400", description = "Transición inválida o datos inválidos"),
+            @ApiResponse(responseCode = "404", description = "Aporte no encontrado")
     })
     @PatchMapping("/{id}/estado")
     public AporteResponse cambiarEstado(
-            @Parameter(description = "ID del aporte", example = "1")
-            @PathVariable Long id,
+            @Parameter(description = "UUID del aporte", example = "550e8400-e29b-41d4-a716-446655440000")
+            @PathVariable String id,
             @Valid @RequestBody CambiarEstadoRequest req) {
-        var command = new CambiarEstadoCommand(id, req.nuevoEstado(), req.revisor(), req.comentario());
-        return AporteResponse.from(cambiarEstadoAporteUseCase.cambiar(command));
+        return AporteResponse.from(cambiarEstadoAporteUseCase.cambiar(
+                new CambiarEstadoCommand(id, req.nuevoEstado(), req.revisor(), req.comentario())));
     }
 
-    @Operation(
-            summary = "Historial de revisiones de un aporte",
-            description = "Retorna todos los cambios de estado realizados sobre el aporte, ordenados cronológicamente."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Historial retornado correctamente"),
-            @ApiResponse(responseCode = "404", description = "Aporte no encontrado")
-    })
+    @Operation(summary = "Historial de revisiones de un aporte")
+    @ApiResponse(responseCode = "200", description = "Historial retornado")
     @GetMapping("/{id}/revisiones")
     public List<RevisionResponse> revisiones(
-            @Parameter(description = "ID del aporte", example = "1")
-            @PathVariable Long id) {
-        return consultarRevisionesUseCase.consultar(id)
-                .stream()
-                .map(RevisionResponse::from)
-                .toList();
+            @Parameter(description = "UUID del aporte", example = "550e8400-e29b-41d4-a716-446655440000")
+            @PathVariable String id) {
+        return consultarRevisionesUseCase.consultar(id).stream()
+                .map(RevisionResponse::from).toList();
     }
 }

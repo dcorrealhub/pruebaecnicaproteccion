@@ -17,7 +17,7 @@ import java.time.OffsetDateTime;
 public class CambiarEstadoAporteUseCaseImpl implements CambiarEstadoAporteUseCase {
 
     private final AporteRepositoryPort aporteRepository;
-    private final RevisionRepository revisionRepository;
+    private final RevisionRepository   revisionRepository;
 
     @Override
     @Transactional
@@ -25,29 +25,16 @@ public class CambiarEstadoAporteUseCaseImpl implements CambiarEstadoAporteUseCas
         Aporte aporte = aporteRepository.findById(command.aporteId())
                 .orElseThrow(() -> new AporteNotFoundException(command.aporteId()));
 
-        // Valida la transición — lanza TransicionEstadoInvalidaException si no es legal
         aporte.getEstado().transicionar(command.nuevoEstado());
 
-        Aporte actualizado = new Aporte(
-                aporte.getId(),
-                aporte.getAfiliadoId(),
-                aporte.getMonto(),
-                aporte.getFecha(),
-                aporte.getCanal(),
-                aporte.getPeriodo(),
-                command.nuevoEstado(),
-                aporte.getIdempotenciaKey()
-        );
+        Aporte actualizado = new Aporte(aporte.getId(), aporte.getAfiliadoId(), aporte.getMonto(),
+                aporte.getFecha(), aporte.getCanal(), aporte.getPeriodo(),
+                command.nuevoEstado(), aporte.getIdempotenciaKey());
+
         Aporte guardado = aporteRepository.guardar(actualizado);
 
-        revisionRepository.guardar(new RevisionAporte(
-                null,
-                command.aporteId(),
-                command.revisor(),
-                command.nuevoEstado(),
-                command.comentario(),
-                OffsetDateTime.now()
-        ));
+        revisionRepository.guardar(new RevisionAporte(null, command.aporteId(),
+                command.revisor(), command.nuevoEstado(), command.comentario(), OffsetDateTime.now()));
 
         return guardado;
     }

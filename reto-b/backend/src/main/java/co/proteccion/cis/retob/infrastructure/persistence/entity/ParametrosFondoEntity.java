@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "historico_parametros")
@@ -18,8 +19,9 @@ import java.time.OffsetDateTime;
 public class ParametrosFondoEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(columnDefinition = "UUID", nullable = false, updatable = false)
+    private UUID id;
 
     @Column(name = "tope_mensual", nullable = false, precision = 15, scale = 2)
     private BigDecimal topeMensual;
@@ -38,8 +40,6 @@ public class ParametrosFondoEntity {
 
     @PrePersist
     void prePersist() {
-        if (modificadoEn == null) {
-            modificadoEn = OffsetDateTime.now();
-        }
+        if (modificadoEn == null) modificadoEn = OffsetDateTime.now();
     }
 }

@@ -6,7 +6,7 @@ import co.proteccion.cis.retob.domain.model.RevisionAporte;
 import java.time.OffsetDateTime;
 
 public record RevisionResponse(
-        Long id,
+        String id,
         String revisor,
         EstadoAporte decision,
         String comentario,

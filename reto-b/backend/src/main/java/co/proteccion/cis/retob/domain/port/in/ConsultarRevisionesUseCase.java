@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface ConsultarRevisionesUseCase {
 
-    List<RevisionAporte> consultar(Long aporteId);
+    List<RevisionAporte> consultar(String aporteId);
 }

@@ -5,16 +5,16 @@ import java.time.LocalDate;
 
 public final class Aporte {
 
-    private final Long id;
+    private final String id;
     private final String afiliadoId;
     private final BigDecimal monto;
     private final LocalDate fecha;
     private final CanalOrigen canal;
-    private final String periodo;        // formato YYYY-MM
+    private final String periodo;
     private final EstadoAporte estado;
     private final String idempotenciaKey;
 
-    public Aporte(Long id,
+    public Aporte(String id,
                   String afiliadoId,
                   BigDecimal monto,
                   LocalDate fecha,
@@ -32,7 +32,7 @@ public final class Aporte {
         this.idempotenciaKey = idempotenciaKey;
     }
 
-    public Long getId()                  { return id; }
+    public String getId()                { return id; }
     public String getAfiliadoId()        { return afiliadoId; }
     public BigDecimal getMonto()         { return monto; }
     public LocalDate getFecha()          { return fecha; }

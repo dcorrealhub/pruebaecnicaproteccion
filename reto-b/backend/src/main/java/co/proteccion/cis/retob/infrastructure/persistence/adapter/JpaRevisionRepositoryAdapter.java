@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -19,10 +20,10 @@ public class JpaRevisionRepositoryAdapter implements RevisionRepository {
     @Override
     public RevisionAporte guardar(RevisionAporte revision) {
         AporteEntity aporteRef = new AporteEntity();
-        aporteRef.setId(revision.getAporteId());
+        aporteRef.setId(UUID.fromString(revision.getAporteId()));
 
         RevisionAporteEntity entity = RevisionAporteEntity.builder()
-                .id(revision.getId())
+                .id(revision.getId() != null ? UUID.fromString(revision.getId()) : null)
                 .aporte(aporteRef)
                 .revisor(revision.getRevisor())
                 .decision(revision.getDecision())
@@ -33,21 +34,13 @@ public class JpaRevisionRepositoryAdapter implements RevisionRepository {
     }
 
     @Override
-    public List<RevisionAporte> findByAporteId(Long aporteId) {
-        return springDataRepo.findByAporteId(aporteId)
-                .stream()
-                .map(this::toDomain)
-                .toList();
+    public List<RevisionAporte> findByAporteId(String aporteId) {
+        return springDataRepo.findByAporte_Id(UUID.fromString(aporteId))
+                .stream().map(this::toDomain).toList();
     }
 
     private RevisionAporte toDomain(RevisionAporteEntity e) {
-        return new RevisionAporte(
-                e.getId(),
-                e.getAporte().getId(),
-                e.getRevisor(),
-                e.getDecision(),
-                e.getComentario(),
-                e.getOcurridoEn()
-        );
+        return new RevisionAporte(e.getId().toString(), e.getAporte().getId().toString(),
+                e.getRevisor(), e.getDecision(), e.getComentario(), e.getOcurridoEn());
     }
 }

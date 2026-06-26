@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -18,13 +19,12 @@ public class JpaAporteRepositoryAdapter implements AporteRepositoryPort {
 
     @Override
     public Aporte guardar(Aporte aporte) {
-        AporteEntity entity = toEntity(aporte);
-        return toDomain(springDataRepo.save(entity));
+        return toDomain(springDataRepo.save(toEntity(aporte)));
     }
 
     @Override
-    public Optional<Aporte> findById(Long id) {
-        return springDataRepo.findById(id).map(this::toDomain);
+    public Optional<Aporte> findById(String id) {
+        return springDataRepo.findById(UUID.fromString(id)).map(this::toDomain);
     }
 
     @Override
@@ -33,19 +33,14 @@ public class JpaAporteRepositoryAdapter implements AporteRepositoryPort {
     }
 
     @Override
-    public List<Aporte> findByAfiliadoIdAndPeriodoBetween(String afiliadoId,
-                                                           String periodoDesde,
-                                                           String periodoHasta) {
-        return springDataRepo
-                .findByAfiliadoIdAndPeriodoBetween(afiliadoId, periodoDesde, periodoHasta)
-                .stream()
-                .map(this::toDomain)
-                .toList();
+    public List<Aporte> findByAfiliadoIdAndPeriodoBetween(String afiliadoId, String periodoDesde, String periodoHasta) {
+        return springDataRepo.findByAfiliadoIdAndPeriodoBetween(afiliadoId, periodoDesde, periodoHasta)
+                .stream().map(this::toDomain).toList();
     }
 
     private AporteEntity toEntity(Aporte a) {
         return AporteEntity.builder()
-                .id(a.getId())
+                .id(a.getId() != null ? UUID.fromString(a.getId()) : null)
                 .afiliadoId(a.getAfiliadoId())
                 .monto(a.getMonto())
                 .fecha(a.getFecha())
@@ -57,15 +52,7 @@ public class JpaAporteRepositoryAdapter implements AporteRepositoryPort {
     }
 
     private Aporte toDomain(AporteEntity e) {
-        return new Aporte(
-                e.getId(),
-                e.getAfiliadoId(),
-                e.getMonto(),
-                e.getFecha(),
-                e.getCanal(),
-                e.getPeriodo(),
-                e.getEstado(),
-                e.getIdempotenciaKey()
-        );
+        return new Aporte(e.getId().toString(), e.getAfiliadoId(), e.getMonto(), e.getFecha(),
+                e.getCanal(), e.getPeriodo(), e.getEstado(), e.getIdempotenciaKey());
     }
 }

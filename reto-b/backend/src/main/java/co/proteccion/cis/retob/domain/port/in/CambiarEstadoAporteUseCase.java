@@ -8,7 +8,7 @@ public interface CambiarEstadoAporteUseCase {
     Aporte cambiar(CambiarEstadoCommand command);
 
     record CambiarEstadoCommand(
-            Long aporteId,
+            String aporteId,
             EstadoAporte nuevoEstado,
             String revisor,
             String comentario

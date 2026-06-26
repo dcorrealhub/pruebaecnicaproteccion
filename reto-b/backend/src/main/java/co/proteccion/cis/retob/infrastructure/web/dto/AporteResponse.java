@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record AporteResponse(
-        Long id,
+        String id,
         String afiliadoId,
         BigDecimal monto,
         LocalDate fecha,
@@ -17,14 +17,7 @@ public record AporteResponse(
         EstadoAporte estado
 ) {
     public static AporteResponse from(Aporte aporte) {
-        return new AporteResponse(
-                aporte.getId(),
-                aporte.getAfiliadoId(),
-                aporte.getMonto(),
-                aporte.getFecha(),
-                aporte.getCanal(),
-                aporte.getPeriodo(),
-                aporte.getEstado()
-        );
+        return new AporteResponse(aporte.getId(), aporte.getAfiliadoId(), aporte.getMonto(),
+                aporte.getFecha(), aporte.getCanal(), aporte.getPeriodo(), aporte.getEstado());
     }
 }

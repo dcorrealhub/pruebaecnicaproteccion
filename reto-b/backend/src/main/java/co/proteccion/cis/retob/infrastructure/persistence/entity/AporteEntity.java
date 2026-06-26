@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "aporte")
@@ -21,8 +22,9 @@ import java.time.OffsetDateTime;
 public class AporteEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(columnDefinition = "UUID", nullable = false, updatable = false)
+    private UUID id;
 
     @Column(name = "afiliado_id", nullable = false, length = 50)
     private String afiliadoId;
@@ -52,8 +54,6 @@ public class AporteEntity {
 
     @PrePersist
     void prePersist() {
-        if (creadoEn == null) {
-            creadoEn = OffsetDateTime.now();
-        }
+        if (creadoEn == null) creadoEn = OffsetDateTime.now();
     }
 }

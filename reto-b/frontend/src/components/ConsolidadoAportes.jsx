@@ -2,6 +2,15 @@ import { useState } from 'react'
 import { consultarConsolidado } from '../api/aportesApi'
 import Swal from 'sweetalert2'
 
+const BADGE_ESTADO = {
+  PENDIENTE:   { cls: 'badge-success', label: '✅ Pendiente' },
+  EN_REVISION: { cls: 'badge-warning', label: '⚠️ En revisión' },
+  APROBADO:    { cls: 'badge-success', label: '✅ Aprobado' },
+  RECHAZADO:   { cls: 'badge-danger',  label: '🚫 Rechazado' },
+}
+
+const LABEL_CANAL = { APP_MOVIL: '📲 App móvil', WEB: '💻 Web', SUCURSAL: '🏢 Sucursal' }
+
 export default function ConsolidadoAportes() {
   const [filtros, setFiltros] = useState({ afiliadoId: '', periodoDesde: '', periodoHasta: '' })
   const [consolidado, setConsolidado] = useState(null)
@@ -22,11 +31,7 @@ export default function ConsolidadoAportes() {
           text: 'No se encontraron aportes para el afiliado en el periodo indicado.',
           icon: 'info',
           confirmButtonText: 'Aceptar',
-          customClass: {
-            popup: 'custom-swal-popup',
-            title: 'custom-swal-title',
-            confirmButton: 'custom-swal-confirm'
-          }
+          customClass: { popup: 'custom-swal-popup', title: 'custom-swal-title', confirmButton: 'custom-swal-confirm' }
         })
       }
     } catch (err) {
@@ -35,11 +40,7 @@ export default function ConsolidadoAportes() {
         text: err.message || 'No se pudo obtener el consolidado de aportes.',
         icon: 'error',
         confirmButtonText: 'Aceptar',
-        customClass: {
-          popup: 'custom-swal-popup',
-          title: 'custom-swal-title',
-          confirmButton: 'custom-swal-confirm'
-        }
+        customClass: { popup: 'custom-swal-popup', title: 'custom-swal-title', confirmButton: 'custom-swal-confirm' }
       })
     } finally {
       setCargando(false)
@@ -50,7 +51,6 @@ export default function ConsolidadoAportes() {
     <div className="card fade-in" style={{ width: '100%' }}>
       <h2 className="card-title">Consolidado de Aportes</h2>
 
-      {/* Filter Form */}
       <form onSubmit={handleBuscar} style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -105,10 +105,8 @@ export default function ConsolidadoAportes() {
         </button>
       </form>
 
-      {/* Results Display */}
       {consolidado && (
         <div className="fade-in">
-          {/* Total Box */}
           <div className="stat-card" style={{ maxWidth: '320px', marginBottom: '1.5rem', border: '1.5px solid var(--color-success)' }}>
             <div className="stat-icon" style={{ backgroundColor: 'var(--color-success-bg)', color: 'var(--color-success)' }}>💰</div>
             <div className="stat-info">
@@ -119,7 +117,6 @@ export default function ConsolidadoAportes() {
             </div>
           </div>
 
-          {/* Details Table */}
           {consolidado.detalle && consolidado.detalle.length > 0 ? (
             <div>
               <h3 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', fontWeight: 600 }}>Detalle de Transacciones</h3>
@@ -130,26 +127,25 @@ export default function ConsolidadoAportes() {
                       <th>Fecha</th>
                       <th>Monto</th>
                       <th>Canal</th>
-                      <th>Estado / Revisión</th>
+                      <th>Estado</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {consolidado.detalle.map(a => (
-                      <tr key={a.id}>
-                        <td style={{ fontWeight: 500 }}>{a.fecha}</td>
-                        <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>
-                          $ {a.monto?.toLocaleString('es-CO', { minimumFractionDigits: 2 })}
-                        </td>
-                        <td>
-                          {a.canal === 'APP_MOVIL' ? '📲 App móvil' : a.canal === 'WEB' ? '💻 Web' : '🏢 Sucursal'}
-                        </td>
-                        <td>
-                          <span className={`badge ${a.marcadaRevision ? 'badge-warning' : 'badge-success'}`}>
-                            {a.marcadaRevision ? '⚠️ En revisión' : '✅ Procesado'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                    {consolidado.detalle.map(a => {
+                      const badge = BADGE_ESTADO[a.estado] ?? { cls: 'badge-success', label: a.estado }
+                      return (
+                        <tr key={a.id}>
+                          <td style={{ fontWeight: 500 }}>{a.fecha}</td>
+                          <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                            $ {a.monto?.toLocaleString('es-CO', { minimumFractionDigits: 2 })}
+                          </td>
+                          <td>{LABEL_CANAL[a.canal] ?? a.canal}</td>
+                          <td>
+                            <span className={`badge ${badge.cls}`}>{badge.label}</span>
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -164,4 +160,3 @@ export default function ConsolidadoAportes() {
     </div>
   )
 }
-

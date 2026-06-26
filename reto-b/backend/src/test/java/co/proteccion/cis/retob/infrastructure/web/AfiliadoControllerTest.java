@@ -36,7 +36,7 @@ class AfiliadoControllerTest {
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private Afiliado afiliadoStub(String id) {
-        return new Afiliado(1L, id, "Juan Sintético", EstadoAfiliado.ACTIVO, OffsetDateTime.now());
+        return new Afiliado("af-uuid-001", id, "Juan Sintético", EstadoAfiliado.ACTIVO, OffsetDateTime.now());
     }
 
     // ── POST /api/afiliados ───────────────────────────────────────────────────

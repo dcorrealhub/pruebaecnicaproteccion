@@ -6,7 +6,7 @@ import co.proteccion.cis.retob.domain.model.EstadoAfiliado;
 import java.time.OffsetDateTime;
 
 public record AfiliadoResponse(
-        Long id,
+        String id,
         String afiliadoId,
         String nombre,
         EstadoAfiliado estado,

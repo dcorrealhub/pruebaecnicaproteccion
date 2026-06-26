@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -18,8 +19,7 @@ public class JpaAfiliadoRepositoryAdapter implements AfiliadoRepository {
 
     @Override
     public Afiliado guardar(Afiliado afiliado) {
-        AfiliadoEntity entity = toEntity(afiliado);
-        return toDomain(springDataRepo.save(entity));
+        return toDomain(springDataRepo.save(toEntity(afiliado)));
     }
 
     @Override
@@ -34,7 +34,7 @@ public class JpaAfiliadoRepositoryAdapter implements AfiliadoRepository {
 
     private AfiliadoEntity toEntity(Afiliado a) {
         return AfiliadoEntity.builder()
-                .id(a.getId())
+                .id(a.getId() != null ? UUID.fromString(a.getId()) : null)
                 .afiliadoId(a.getAfiliadoId())
                 .nombre(a.getNombre())
                 .estado(a.getEstado())
@@ -43,6 +43,6 @@ public class JpaAfiliadoRepositoryAdapter implements AfiliadoRepository {
     }
 
     private Afiliado toDomain(AfiliadoEntity e) {
-        return new Afiliado(e.getId(), e.getAfiliadoId(), e.getNombre(), e.getEstado(), e.getCreadoEn());
+        return new Afiliado(e.getId().toString(), e.getAfiliadoId(), e.getNombre(), e.getEstado(), e.getCreadoEn());
     }
 }

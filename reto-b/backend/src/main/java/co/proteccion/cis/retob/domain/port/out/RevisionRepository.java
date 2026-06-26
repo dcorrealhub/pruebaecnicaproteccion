@@ -8,5 +8,5 @@ public interface RevisionRepository {
 
     RevisionAporte guardar(RevisionAporte revision);
 
-    List<RevisionAporte> findByAporteId(Long aporteId);
+    List<RevisionAporte> findByAporteId(String aporteId);
 }

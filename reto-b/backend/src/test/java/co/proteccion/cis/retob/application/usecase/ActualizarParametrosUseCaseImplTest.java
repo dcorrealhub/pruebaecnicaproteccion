@@ -29,7 +29,7 @@ class ActualizarParametrosUseCaseImplTest {
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private ParametrosFondo parametrosGuardados(BigDecimal tope, BigDecimal umbral) {
-        return new ParametrosFondo(1L, tope, umbral, "ADMIN", OffsetDateTime.now(), "test");
+        return new ParametrosFondo("param-uuid-001", tope, umbral, "ADMIN", OffsetDateTime.now(), "test");
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────

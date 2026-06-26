@@ -2,6 +2,17 @@ import { useState } from 'react'
 import { registrarAporte } from '../api/aportesApi'
 import Swal from 'sweetalert2'
 
+function escaparHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
+const LABEL_CANAL = { APP_MOVIL: 'App Móvil', WEB: 'Web', SUCURSAL: 'Sucursal' }
+
 export default function RegistrarAporte() {
   const [form, setForm] = useState({ afiliadoId: '', monto: '', canal: 'APP_MOVIL' })
   const [resultado, setResultado] = useState(null)
@@ -9,8 +20,7 @@ export default function RegistrarAporte() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    
-    // Validar monto positivo
+
     const montoNum = parseFloat(form.monto)
     if (isNaN(montoNum) || montoNum <= 0) {
       Swal.fire({
@@ -18,38 +28,28 @@ export default function RegistrarAporte() {
         text: 'El monto ingresado debe ser mayor a cero.',
         icon: 'error',
         confirmButtonText: 'Aceptar',
-        customClass: {
-          popup: 'custom-swal-popup',
-          title: 'custom-swal-title',
-          confirmButton: 'custom-swal-confirm'
-        }
+        customClass: { popup: 'custom-swal-popup', title: 'custom-swal-title', confirmButton: 'custom-swal-confirm' }
       })
       return
     }
 
-    // Modal de confirmación premium
+    // Confirmación — valores escapados para evitar XSS en el html: de Swal
     const confirmacion = await Swal.fire({
       title: '¿Confirmar Registro?',
       html: `
-        <div style="text-align: left; font-size: 0.95rem;">
-          <p style="margin-bottom: 0.5rem;">Estás a punto de registrar el siguiente aporte voluntario:</p>
-          <ul style="list-style: none; padding-left: 0;">
-            <li style="margin-bottom: 0.3rem;"><strong>ID Afiliado:</strong> ${form.afiliadoId}</li>
-            <li style="margin-bottom: 0.3rem;"><strong>Monto:</strong> $ ${montoNum.toLocaleString('es-CO', { minimumFractionDigits: 2 })} COP</li>
-            <li><strong>Canal:</strong> ${form.canal === 'APP_MOVIL' ? 'App Móvil' : form.canal === 'WEB' ? 'Web' : 'Sucursal'}</li>
+        <div style="text-align:left;font-size:0.95rem;">
+          <p style="margin-bottom:0.5rem;">Estás a punto de registrar el siguiente aporte:</p>
+          <ul style="list-style:none;padding-left:0;">
+            <li style="margin-bottom:0.3rem;"><strong>ID Afiliado:</strong> ${escaparHtml(form.afiliadoId)}</li>
+            <li style="margin-bottom:0.3rem;"><strong>Monto:</strong> $ ${montoNum.toLocaleString('es-CO', { minimumFractionDigits: 2 })} COP</li>
+            <li><strong>Canal:</strong> ${escaparHtml(LABEL_CANAL[form.canal] ?? form.canal)}</li>
           </ul>
-        </div>
-      `,
+        </div>`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Sí, registrar',
       cancelButtonText: 'Cancelar',
-      customClass: {
-        popup: 'custom-swal-popup',
-        title: 'custom-swal-title',
-        confirmButton: 'custom-swal-confirm',
-        cancelButton: 'custom-swal-cancel'
-      }
+      customClass: { popup: 'custom-swal-popup', title: 'custom-swal-title', confirmButton: 'custom-swal-confirm', cancelButton: 'custom-swal-cancel' }
     })
 
     if (!confirmacion.isConfirmed) return
@@ -63,49 +63,35 @@ export default function RegistrarAporte() {
         monto: montoNum,
         idempotenciaKey: crypto.randomUUID(),
       })
-      
+
       setResultado(data)
-      
-      // Mostrar alerta según el estado de la respuesta
+
       if (data.estado === 'EN_REVISION') {
         Swal.fire({
           title: 'Aporte en Revisión',
-          text: `El aporte de $${montoNum.toLocaleString('es-CO')} ha sido guardado. Sin embargo, quedó en estado "EN_REVISION" y requiere aprobación manual.`,
+          text: `El aporte de $${montoNum.toLocaleString('es-CO')} ha sido guardado pero quedó en estado "EN_REVISION" y requiere aprobación manual.`,
           icon: 'warning',
           confirmButtonText: 'Entendido',
-          customClass: {
-            popup: 'custom-swal-popup',
-            title: 'custom-swal-title',
-            confirmButton: 'custom-swal-confirm'
-          }
+          customClass: { popup: 'custom-swal-popup', title: 'custom-swal-title', confirmButton: 'custom-swal-confirm' }
         })
       } else {
         Swal.fire({
           title: '¡Registro Exitoso!',
-          text: `El aporte de $${montoNum.toLocaleString('es-CO')} ha sido procesado exitosamente (ID: ${data.id}).`,
+          text: `El aporte de $${montoNum.toLocaleString('es-CO')} fue procesado exitosamente.`,
           icon: 'success',
           confirmButtonText: 'Excelente',
-          customClass: {
-            popup: 'custom-swal-popup',
-            title: 'custom-swal-title',
-            confirmButton: 'custom-swal-confirm'
-          }
+          customClass: { popup: 'custom-swal-popup', title: 'custom-swal-title', confirmButton: 'custom-swal-confirm' }
         })
       }
 
-      // Limpiar formulario tras éxito
       setForm({ afiliadoId: '', monto: '', canal: 'APP_MOVIL' })
     } catch (err) {
       Swal.fire({
         title: 'Error al Registrar',
-        text: err.message || 'Ocurrió un error inesperado al procesar el aporte.',
+        text: err.message || 'Ocurrió un error inesperado.',
         icon: 'error',
         confirmButtonText: 'Intentar de nuevo',
-        customClass: {
-          popup: 'custom-swal-popup',
-          title: 'custom-swal-title',
-          confirmButton: 'custom-swal-confirm'
-        }
+        customClass: { popup: 'custom-swal-popup', title: 'custom-swal-title', confirmButton: 'custom-swal-confirm' }
       })
     } finally {
       setCargando(false)
@@ -167,16 +153,14 @@ export default function RegistrarAporte() {
         <div className="fade-in" style={{ marginTop: '1.5rem', padding: '1rem', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', backgroundColor: '#f8fafc' }}>
           <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span>Último aporte procesado:</span>
-            <span className={`badge ${resultado.estado === 'EN_REVISION' ? 'badge-warning' : 'badge-success'}`}>
-              {resultado.estado}
-            </span>
+            <EstadoBadge estado={resultado.estado} />
           </h4>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-            <strong>ID Transacción:</strong> {resultado.id}
+            <strong>ID Transacción:</strong> <code style={{ fontSize: '0.8rem' }}>{resultado.id}</code>
           </p>
           {resultado.estado === 'EN_REVISION' && (
             <p style={{ fontSize: '0.8rem', color: 'var(--color-warning)', marginTop: '0.5rem', fontWeight: '500' }}>
-              ⚠️ Este aporte ha sido retenido por límites transaccionales y requiere aprobación administrativa.
+              ⚠️ Este aporte ha sido retenido y requiere aprobación administrativa.
             </p>
           )}
         </div>
@@ -185,3 +169,13 @@ export default function RegistrarAporte() {
   )
 }
 
+function EstadoBadge({ estado }) {
+  const config = {
+    PENDIENTE:   { cls: 'badge-success',  label: 'PENDIENTE' },
+    EN_REVISION: { cls: 'badge-warning',  label: 'EN REVISIÓN' },
+    APROBADO:    { cls: 'badge-success',  label: 'APROBADO' },
+    RECHAZADO:   { cls: 'badge-danger',   label: 'RECHAZADO' },
+  }
+  const { cls, label } = config[estado] ?? { cls: 'badge-success', label: estado }
+  return <span className={`badge ${cls}`}>{label}</span>
+}

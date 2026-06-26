@@ -17,7 +17,7 @@ public class ConsultarRevisionesUseCaseImpl implements ConsultarRevisionesUseCas
 
     @Override
     @Transactional(readOnly = true)
-    public List<RevisionAporte> consultar(Long aporteId) {
+    public List<RevisionAporte> consultar(String aporteId) {
         return revisionRepository.findByAporteId(aporteId);
     }
 }

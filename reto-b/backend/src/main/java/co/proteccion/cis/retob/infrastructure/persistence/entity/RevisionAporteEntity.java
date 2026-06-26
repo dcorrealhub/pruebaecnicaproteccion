@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "revision_aporte")
@@ -18,11 +19,12 @@ import java.time.OffsetDateTime;
 public class RevisionAporteEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(columnDefinition = "UUID", nullable = false, updatable = false)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "aporte_id", nullable = false)
+    @JoinColumn(name = "aporte_id", nullable = false, columnDefinition = "UUID")
     private AporteEntity aporte;
 
     @Column(nullable = false, length = 100)
@@ -40,8 +42,6 @@ public class RevisionAporteEntity {
 
     @PrePersist
     void prePersist() {
-        if (ocurridoEn == null) {
-            ocurridoEn = OffsetDateTime.now();
-        }
+        if (ocurridoEn == null) ocurridoEn = OffsetDateTime.now();
     }
 }
