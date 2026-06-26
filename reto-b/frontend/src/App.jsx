@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import RegistrarAporte from './components/RegistrarAporte'
 import ConsolidadoAportes from './components/ConsolidadoAportes'
+import Configuracion from './components/Configuracion'
+
+const VISTAS = [
+  { id: 'registrar', label: 'Registrar aporte' },
+  { id: 'consolidado', label: 'Consolidado' },
+  { id: 'configuracion', label: 'Configuración' },
+]
 
 export default function App() {
   const [vistaActiva, setVistaActiva] = useState('registrar')
@@ -10,22 +17,20 @@ export default function App() {
       <h1 style={{ fontSize: 22, marginBottom: 24 }}>Aportes Voluntarios</h1>
 
       <nav style={{ marginBottom: 24, display: 'flex', gap: 12 }}>
-        <button
-          onClick={() => setVistaActiva('registrar')}
-          style={{ fontWeight: vistaActiva === 'registrar' ? 'bold' : 'normal' }}
-        >
-          Registrar aporte
-        </button>
-        <button
-          onClick={() => setVistaActiva('consolidado')}
-          style={{ fontWeight: vistaActiva === 'consolidado' ? 'bold' : 'normal' }}
-        >
-          Consolidado
-        </button>
+        {VISTAS.map(v => (
+          <button
+            key={v.id}
+            onClick={() => setVistaActiva(v.id)}
+            style={{ fontWeight: vistaActiva === v.id ? 'bold' : 'normal' }}
+          >
+            {v.label}
+          </button>
+        ))}
       </nav>
 
       {vistaActiva === 'registrar' && <RegistrarAporte />}
       {vistaActiva === 'consolidado' && <ConsolidadoAportes />}
+      {vistaActiva === 'configuracion' && <Configuracion />}
     </div>
   )
 }

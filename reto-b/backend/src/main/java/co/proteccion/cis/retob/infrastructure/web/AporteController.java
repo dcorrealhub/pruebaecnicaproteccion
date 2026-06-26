@@ -1,5 +1,6 @@
 package co.proteccion.cis.retob.infrastructure.web;
 
+import co.proteccion.cis.retob.domain.port.in.AprobarAporteUseCase;
 import co.proteccion.cis.retob.domain.port.in.ConsultarAportesUseCase;
 import co.proteccion.cis.retob.domain.port.in.ConsultarAportesUseCase.ConsultarAportesQuery;
 import co.proteccion.cis.retob.domain.port.in.RegistrarAporteUseCase;
@@ -19,6 +20,7 @@ public class AporteController {
 
     private final RegistrarAporteUseCase registrarAporteUseCase;
     private final ConsultarAportesUseCase consultarAportesUseCase;
+    private final AprobarAporteUseCase aprobarAporteUseCase;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -26,6 +28,7 @@ public class AporteController {
         var command = new RegistrarAporteCommand(
                 req.afiliadoId(),
                 req.monto(),
+                req.fecha(),
                 req.canal(),
                 req.idempotenciaKey()
         );
@@ -39,5 +42,15 @@ public class AporteController {
             @RequestParam String periodoHasta) {
         var query = new ConsultarAportesQuery(afiliadoId, periodoDesde, periodoHasta);
         return ConsolidadoResponse.from(consultarAportesUseCase.consultar(query));
+    }
+
+    @PostMapping("/{id}/aprobar")
+    public AporteResponse aprobar(@PathVariable Long id) {
+        return AporteResponse.from(aprobarAporteUseCase.aprobar(id));
+    }
+
+    @PostMapping("/{id}/rechazar")
+    public AporteResponse rechazar(@PathVariable Long id) {
+        return AporteResponse.from(aprobarAporteUseCase.rechazar(id));
     }
 }

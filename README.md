@@ -71,6 +71,34 @@ npm install
 npm run dev              # Puerto 5173
 ```
 
+### API (Reto B)
+
+```
+POST http://localhost:8082/api/aportes                      # registrar (idempotente)
+GET  http://localhost:8082/api/aportes/consolidado?afiliadoId=AF-001&periodoDesde=2025-06&periodoHasta=2025-06
+POST http://localhost:8082/api/aportes/{id}/aprobar         # aprobar un aporte en revisión
+POST http://localhost:8082/api/aportes/{id}/rechazar        # rechazar un aporte en revisión
+GET  http://localhost:8082/api/configuracion/parametros     # consultar tope y umbral globales
+PUT  http://localhost:8082/api/configuracion/parametros     # actualizar tope y umbral (runtime)
+```
+
+Payload de registro (`fecha` es opcional; por defecto, hoy):
+```json
+{
+  "afiliadoId": "AF-001",
+  "monto": 500000.00,
+  "fecha": "2025-06-10",
+  "canal": "APP_MOVIL",
+  "idempotenciaKey": "f8c3de3d-1fea-4d7c-a8b0-29f63c4c3454"
+}
+```
+
+**Modelo de estados:** un aporte es `APROBADO`, `PENDIENTE_REVISION` (superó el umbral
+configurable) o `RECHAZADO`. Tanto aprobados como pendientes **reservan cupo** del tope
+mensual, de modo que un pendiente nunca supere el tope al aprobarse; rechazar libera la
+reserva. El tope y el umbral se configuran en la tabla `parametro_aporte`.
+Reglas, decisiones y cobertura de pruebas: ver [reto-b/NOTAS_PROCESO.md](reto-b/NOTAS_PROCESO.md).
+
 ## Instrucciones para candidatos
 
 1. **No hagas fork.** Clona este repositorio directamente.

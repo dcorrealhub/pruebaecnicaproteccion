@@ -10,6 +10,7 @@ public record ConsolidadoResponse(
         String periodoDesde,
         String periodoHasta,
         BigDecimal totalAportado,
+        BigDecimal totalEnRevision,
         List<AporteResponse> detalle
 ) {
     public static ConsolidadoResponse from(ConsolidadoAportes consolidado) {
@@ -18,6 +19,7 @@ public record ConsolidadoResponse(
                 consolidado.periodoDesde(),
                 consolidado.periodoHasta(),
                 consolidado.totalAportado(),
+                consolidado.totalEnRevision(),
                 consolidado.detalle().stream().map(AporteResponse::from).toList()
         );
     }

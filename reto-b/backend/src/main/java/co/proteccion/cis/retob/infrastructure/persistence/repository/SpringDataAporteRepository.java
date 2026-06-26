@@ -10,7 +10,7 @@ public interface SpringDataAporteRepository extends JpaRepository<AporteEntity, 
 
     Optional<AporteEntity> findByIdempotenciaKey(String idempotenciaKey);
 
-    List<AporteEntity> findByAfiliadoIdAndPeriodoBetween(String afiliadoId,
-                                                          String periodoDesde,
-                                                          String periodoHasta);
+    List<AporteEntity> findByAfiliadoIdAndPeriodoBetweenOrderByFechaAsc(String afiliadoId,
+                                                                        String periodoDesde,
+                                                                        String periodoHasta);
 }
