@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/aportes")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173")
 public class AporteController {
 
     private final RegistrarAporteUseCase registrarAporteUseCase;
