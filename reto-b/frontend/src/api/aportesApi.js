@@ -6,9 +6,19 @@ const BASE_URL = '/api/aportes'
  * @returns {Promise<object>} aporte creado
  */
 export async function registrarAporte(data) {
-  // TODO: implementar con fetch
-  // Recuerda: idempotenciaKey debe ser generado por el cliente (ej: crypto.randomUUID())
-  throw new Error('registrarAporte: pendiente de implementación')
+  const response = await fetch(BASE_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    throw new Error(`registrarAporte: error ${response.status}`)
+  }
+
+  return response.json()
 }
 
 /**
