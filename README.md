@@ -94,3 +94,14 @@ npm run dev              # Puerto 5173
 - **Seguridad:** OWASP Top 10 · manejo correcto de dinero (BigDecimal) · idempotencia
 
 > Usa datos sintéticos en todo momento. Nunca uses ni inventes información personal real.
+
+## Prompts utilizados durante la sesión
+
+1. **Crear archivo de prompts**
+   > Crea dentro de la carpeta un archivo .md donde se van a ir agregando los prompts.
+
+2. **Crear agente code-reviewer**
+   > Crea un agente que sea un experto en revisión de código que genere lista de hallazgos, ubicación, severidad (crítica / alta / media / baja), por qué es un problema y cómo lo corregirías.
+
+3. **Agregar prompts al README**
+   > Agrega los prompts escritos en el archivo readme.
