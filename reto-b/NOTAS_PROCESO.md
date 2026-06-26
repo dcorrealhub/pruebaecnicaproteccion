@@ -243,3 +243,36 @@ saldoRepository.guardar(saldo.conTotal(nuevoTotal));
 **Qué verifiqué del output de la IA:**  
 La IA tiende a comentar en exceso — genera comentarios tipo `// Registra el aporte` sobre un método llamado `registrarAporte`. Revisé cada comentario propuesto y eliminé los que solo repetían el nombre del símbolo. Los que sobrevivieron explican una decisión de diseño, un riesgo de concurrencia, o un comportamiento no evidente del código.
 
+## 📸 Evidencia de ejecución y funcionamiento
+
+A continuación, se presenta la evidencia visual del sistema operando de extremo a extremo, demostrando la integración entre el frontend y el backend con las reglas de negocio aplicadas.
+
+### 1. Interfaz de Usuario (Frontend)
+
+El frontend fue estilizado respetando la identidad visual corporativa y enfocado en una experiencia de usuario fluida y libre de errores.
+
+#### Registro de Aportes
+**Cómo funciona:** El usuario ingresa el ID del afiliado y el monto. Gracias a la normalización en tiempo real, el campo `afiliadoId` convierte automáticamente el texto a mayúsculas mientras el usuario escribe, previniendo inconsistencias en la base de datos.
+
+![Captura: Formulario de registro de aporte con ID en mayúsculas y colores corporativos](screenshots\Screenshot_1.jpg)
+
+#### Consolidado de Aportes
+**Cómo funciona:** Se implementó el selector de meses (`type="month"`) para garantizar el formato `YYYY-MM`. El sistema valida dinámicamente que el "Período desde" no sea mayor al "Período hasta". Al consultar, se muestra la tabla con el historial y el "Total Aportado" resaltado en un *stat-chip*.
+
+![Captura: Tabla de consolidado de aportes mostrando el total y los badges de revisión](screenshots\Screenshot_2.jpg)
+
+---
+
+### 2. Capa de Servicios y Lógica (Backend)
+
+El backend actúa como el guardián de las reglas de negocio, validando los datos independientemente de cómo lleguen desde el cliente.
+
+#### Ejecución del Servidor y Logs
+**Cómo funciona:** Al levantar la aplicación Spring Boot, la base de datos (H2/Postgres) se inicializa correctamente. En los logs se puede observar cómo los endpoints responden a las peticiones del frontend, procesando la información a través de los Casos de Uso.
+
+![Captura: Terminal o consola del IDE mostrando el log de arranque de Spring Boot y peticiones HTTP 200 OK](screenshots\Screenshot_3.jpg)
+
+#### Pruebas Unitarias y de Dominio (Tests)
+**Cómo funciona:** Ejecución exitosa de la suite de pruebas. Aquí se evidencia que la lógica del dominio (como rechazar aportes con monto negativo o nulo) y las reglas de negocio en los Use Cases (como la normalización del `afiliadoId`) están cubiertas y funcionando correctamente.
+
+![Captura: Resultados de ejecución de JUnit/Mockito mostrando los tests en verde](screenshots\Screenshot_4.jpg)
