@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -15,6 +15,44 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - proteccion_net
+
+  backend:
+    build:
+      context: ./reto-b/backend
+      dockerfile: Dockerfile
+    container_name: proteccion_reto_backend
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/proteccion_reto
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      SERVER_PORT: 8082
+      APORTE_TOPE_MENSUAL: ${APORTE_TOPE_MENSUAL:-10000000}
+      APORTE_UMBRAL_REVISION: ${APORTE_UMBRAL_REVISION:-5000000}
+    ports:
+      - "${BACKEND_PORT:-8082}:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - proteccion_net
+
+  frontend:
+    build:
+      context: ./reto-b/frontend
+      dockerfile: Dockerfile
+    container_name: proteccion_reto_frontend
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    depends_on:
+      - backend
+    networks:
+      - proteccion_net
 
 volumes:
   postgres_data:
+
+networks:
+  proteccion_net:
+    name: proteccion_network
