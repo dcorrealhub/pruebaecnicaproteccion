@@ -1,6 +1,8 @@
 package co.proteccion.cis.retob.application.usecase;
 
+import co.proteccion.cis.retob.domain.exception.AfiliadoBloqueadoException;
 import co.proteccion.cis.retob.domain.exception.AfiliadoNotFoundException;
+import co.proteccion.cis.retob.domain.exception.MontoMinimoNoAlcanzadoException;
 import co.proteccion.cis.retob.domain.exception.TopeMensualExcedidoException;
 import co.proteccion.cis.retob.domain.model.*;
 import co.proteccion.cis.retob.domain.port.in.RegistrarAporteUseCase.RegistrarAporteCommand;
@@ -37,19 +39,25 @@ class RegistrarAporteUseCaseImplTest {
 
     @InjectMocks RegistrarAporteUseCaseImpl useCase;
 
-    static final BigDecimal TOPE   = new BigDecimal("10000000");
-    static final BigDecimal UMBRAL = new BigDecimal("5000000");
-    static final String AFILIADO   = "AF-001";
-    static final String IDEM_KEY   = "uuid-test-001";
-    static final String APORTE_ID  = "550e8400-e29b-41d4-a716-446655440002";
+    static final BigDecimal MINIMO  = new BigDecimal("10000");
+    static final BigDecimal TOPE    = new BigDecimal("10000000");
+    static final BigDecimal UMBRAL  = new BigDecimal("5000000");
+    static final String AFILIADO    = "AF-001";
+    static final String IDEM_KEY    = "uuid-test-001";
+    static final String APORTE_ID   = "550e8400-e29b-41d4-a716-446655440002";
 
     @BeforeEach void setup() {
+        ReflectionTestUtils.setField(useCase, "montoMinimoDefault", MINIMO);
         ReflectionTestUtils.setField(useCase, "topeMensualDefault", TOPE);
         ReflectionTestUtils.setField(useCase, "umbralRevisionDefault", UMBRAL);
     }
 
     private Afiliado afiliadoActivo() {
         return new Afiliado("af-uuid-001", AFILIADO, "Juan", EstadoAfiliado.ACTIVO, OffsetDateTime.now());
+    }
+
+    private Afiliado afiliadoBloqueado() {
+        return new Afiliado("af-uuid-001", AFILIADO, "Juan", EstadoAfiliado.BLOQUEADO, OffsetDateTime.now());
     }
 
     private SaldoMensual saldoVacio() {
@@ -90,6 +98,45 @@ class RegistrarAporteUseCaseImplTest {
 
             assertThatThrownBy(() -> useCase.registrar(comando(new BigDecimal("100000"))))
                     .isInstanceOf(AfiliadoNotFoundException.class).hasMessageContaining(AFILIADO);
+        }
+
+        @Test @DisplayName("afiliado BLOQUEADO → AfiliadoBloqueadoException")
+        void afiliado_bloqueado() {
+            when(aporteRepository.findByIdempotenciaKey(any())).thenReturn(Optional.empty());
+            when(afiliadoRepository.findByAfiliadoId(AFILIADO)).thenReturn(Optional.of(afiliadoBloqueado()));
+
+            assertThatThrownBy(() -> useCase.registrar(comando(new BigDecimal("100000"))))
+                    .isInstanceOf(AfiliadoBloqueadoException.class)
+                    .hasMessageContaining(AFILIADO)
+                    .hasMessageContaining("bloqueado");
+
+            verifyNoInteractions(saldoInicializador, saldoRepository);
+        }
+
+        @Test @DisplayName("monto menor al mínimo → MontoMinimoNoAlcanzadoException")
+        void monto_bajo_minimo() {
+            when(aporteRepository.findByIdempotenciaKey(any())).thenReturn(Optional.empty());
+            when(afiliadoRepository.findByAfiliadoId(AFILIADO)).thenReturn(Optional.of(afiliadoActivo()));
+            when(parametroRepository.findLatest()).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> useCase.registrar(comando(new BigDecimal("9999"))))
+                    .isInstanceOf(MontoMinimoNoAlcanzadoException.class)
+                    .hasMessageContaining("9999")
+                    .hasMessageContaining("10000");
+
+            verifyNoInteractions(saldoInicializador, saldoRepository);
+        }
+
+        @Test @DisplayName("monto igual al mínimo pasa la validación")
+        void monto_igual_al_minimo_pasa() {
+            when(aporteRepository.findByIdempotenciaKey(any())).thenReturn(Optional.empty());
+            when(afiliadoRepository.findByAfiliadoId(AFILIADO)).thenReturn(Optional.of(afiliadoActivo()));
+            when(parametroRepository.findLatest()).thenReturn(Optional.empty());
+            when(saldoInicializador.obtenerOInicializar(eq(AFILIADO), anyString())).thenReturn(saldoVacio());
+            when(aporteRepository.guardar(any())).thenReturn(aporteGuardado(MINIMO, EstadoAporte.PENDIENTE));
+            when(saldoRepository.guardar(any())).thenReturn(saldoVacio());
+
+            assertThatCode(() -> useCase.registrar(comando(MINIMO))).doesNotThrowAnyException();
         }
 
         @Test @DisplayName("tope mensual excedido → TopeMensualExcedidoException")
@@ -163,6 +210,22 @@ class RegistrarAporteUseCaseImplTest {
             when(saldoRepository.guardar(any())).thenReturn(saldoVacio());
 
             assertThatCode(() -> useCase.registrar(comando(new BigDecimal("1000000")))).doesNotThrowAnyException();
+        }
+
+        @Test @DisplayName("parámetros desde DB tienen precedencia sobre defaults")
+        void parametros_db_tienen_precedencia() {
+            ParametrosFondo params = new ParametrosFondo(null,
+                    new BigDecimal("50000"),    // montoMinimo más alto
+                    new BigDecimal("20000000"), // topeMensual más alto
+                    new BigDecimal("10000000"), // umbralRevision más alto
+                    "ADMIN", null, null);
+            when(aporteRepository.findByIdempotenciaKey(any())).thenReturn(Optional.empty());
+            when(afiliadoRepository.findByAfiliadoId(AFILIADO)).thenReturn(Optional.of(afiliadoActivo()));
+            when(parametroRepository.findLatest()).thenReturn(Optional.of(params));
+
+            // Con montoMinimo=50.000 en DB, un aporte de 10.000 (que pasaría con defaults) debe fallar
+            assertThatThrownBy(() -> useCase.registrar(comando(new BigDecimal("10000"))))
+                    .isInstanceOf(MontoMinimoNoAlcanzadoException.class);
         }
     }
 

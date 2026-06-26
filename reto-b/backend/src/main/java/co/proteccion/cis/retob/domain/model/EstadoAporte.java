@@ -10,13 +10,15 @@ public enum EstadoAporte {
     PENDIENTE,
     EN_REVISION,
     APROBADO,
-    RECHAZADO;
+    RECHAZADO,
+    ANULADO;
 
     private static final Map<EstadoAporte, Set<EstadoAporte>> TRANSICIONES_VALIDAS = Map.of(
-            PENDIENTE,    Set.of(EN_REVISION, APROBADO),
+            PENDIENTE,    Set.of(EN_REVISION, APROBADO, ANULADO),
             EN_REVISION,  Set.of(APROBADO, RECHAZADO),
             APROBADO,     Set.of(),
-            RECHAZADO,    Set.of()
+            RECHAZADO,    Set.of(),
+            ANULADO,      Set.of()
     );
 
     public EstadoAporte transicionar(EstadoAporte nuevo) {

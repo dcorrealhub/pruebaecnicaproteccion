@@ -28,6 +28,11 @@ class EstadoAporteTest {
         }
 
         @Test
+        void pendiente_a_anulado() {
+            assertThat(PENDIENTE.transicionar(ANULADO)).isEqualTo(ANULADO);
+        }
+
+        @Test
         void en_revision_a_aprobado() {
             assertThat(EN_REVISION.transicionar(APROBADO)).isEqualTo(APROBADO);
         }
@@ -64,6 +69,14 @@ class EstadoAporteTest {
                     .hasMessageContaining("PENDIENTE");
         }
 
+        @Test
+        void en_revision_no_puede_anularse() {
+            assertThatThrownBy(() -> EN_REVISION.transicionar(ANULADO))
+                    .isInstanceOf(TransicionEstadoInvalidaException.class)
+                    .hasMessageContaining("EN_REVISION")
+                    .hasMessageContaining("ANULADO");
+        }
+
         @ParameterizedTest(name = "APROBADO → {0} es inválido")
         @EnumSource(EstadoAporte.class)
         void aprobado_es_estado_terminal(EstadoAporte destino) {
@@ -75,6 +88,13 @@ class EstadoAporteTest {
         @EnumSource(EstadoAporte.class)
         void rechazado_es_estado_terminal(EstadoAporte destino) {
             assertThatThrownBy(() -> RECHAZADO.transicionar(destino))
+                    .isInstanceOf(TransicionEstadoInvalidaException.class);
+        }
+
+        @ParameterizedTest(name = "ANULADO → {0} es inválido")
+        @EnumSource(EstadoAporte.class)
+        void anulado_es_estado_terminal(EstadoAporte destino) {
+            assertThatThrownBy(() -> ANULADO.transicionar(destino))
                     .isInstanceOf(TransicionEstadoInvalidaException.class);
         }
     }

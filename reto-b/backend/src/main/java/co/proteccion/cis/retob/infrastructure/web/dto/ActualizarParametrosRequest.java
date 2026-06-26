@@ -8,6 +8,10 @@ import java.math.BigDecimal;
 
 public record ActualizarParametrosRequest(
 
+        @NotNull(message = "El monto mínimo es obligatorio")
+        @DecimalMin(value = "0.01", message = "El monto mínimo debe ser mayor a cero")
+        BigDecimal montoMinimo,
+
         @NotNull(message = "El tope mensual es obligatorio")
         @DecimalMin(value = "0.01", message = "El tope mensual debe ser mayor a cero")
         BigDecimal topeMensual,

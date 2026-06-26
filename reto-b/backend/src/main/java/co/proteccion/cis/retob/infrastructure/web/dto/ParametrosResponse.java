@@ -7,6 +7,7 @@ import java.time.OffsetDateTime;
 
 public record ParametrosResponse(
         String id,
+        BigDecimal montoMinimo,
         BigDecimal topeMensual,
         BigDecimal umbralRevision,
         String modificadoPor,
@@ -14,7 +15,7 @@ public record ParametrosResponse(
         String comentario
 ) {
     public static ParametrosResponse from(ParametrosFondo p) {
-        return new ParametrosResponse(p.getId(), p.getTopeMensual(), p.getUmbralRevision(),
-                p.getModificadoPor(), p.getModificadoEn(), p.getComentario());
+        return new ParametrosResponse(p.getId(), p.getMontoMinimo(), p.getTopeMensual(),
+                p.getUmbralRevision(), p.getModificadoPor(), p.getModificadoEn(), p.getComentario());
     }
 }

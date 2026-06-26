@@ -78,6 +78,7 @@ public class ParametrosController {
     @ResponseStatus(HttpStatus.CREATED)
     public ParametrosResponse actualizar(@Valid @RequestBody ActualizarParametrosRequest req) {
         var command = new ActualizarParametrosCommand(
+                req.montoMinimo(),
                 req.topeMensual(),
                 req.umbralRevision(),
                 req.modificadoPor(),

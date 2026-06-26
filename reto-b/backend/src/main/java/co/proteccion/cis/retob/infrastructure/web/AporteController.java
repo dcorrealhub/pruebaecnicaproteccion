@@ -1,5 +1,7 @@
 package co.proteccion.cis.retob.infrastructure.web;
 
+import co.proteccion.cis.retob.domain.port.in.AnularAporteUseCase;
+import co.proteccion.cis.retob.domain.port.in.AnularAporteUseCase.AnularAporteCommand;
 import co.proteccion.cis.retob.domain.port.in.CambiarEstadoAporteUseCase;
 import co.proteccion.cis.retob.domain.port.in.CambiarEstadoAporteUseCase.CambiarEstadoCommand;
 import co.proteccion.cis.retob.domain.port.in.ConsultarAportesUseCase;
@@ -36,6 +38,7 @@ public class AporteController {
     private final ConsultarAportesUseCase    consultarAportesUseCase;
     private final CambiarEstadoAporteUseCase cambiarEstadoAporteUseCase;
     private final ConsultarRevisionesUseCase consultarRevisionesUseCase;
+    private final AnularAporteUseCase        anularAporteUseCase;
 
     @Operation(summary = "Registrar un aporte voluntario",
             description = """
@@ -109,5 +112,26 @@ public class AporteController {
             @PathVariable String id) {
         return consultarRevisionesUseCase.consultar(id).stream()
                 .map(RevisionResponse::from).toList();
+    }
+
+    @Operation(summary = "Anular un aporte propio",
+            description = """
+                    Permite al afiliado cancelar un aporte en estado `PENDIENTE`.
+                    Solo el afiliado titular puede anularlo. Un aporte `EN_REVISION` no puede anularse.
+                    Al anular, el cupo mensual consumido es liberado.
+                    """)
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Aporte anulado"),
+            @ApiResponse(responseCode = "400", description = "El aporte no está en estado PENDIENTE"),
+            @ApiResponse(responseCode = "403", description = "El afiliado no es titular del aporte"),
+            @ApiResponse(responseCode = "404", description = "Aporte no encontrado")
+    })
+    @PatchMapping("/{id}/anular")
+    public AporteResponse anular(
+            @Parameter(description = "UUID del aporte")
+            @PathVariable String id,
+            @Valid @RequestBody AnularAporteRequest req) {
+        return AporteResponse.from(anularAporteUseCase.anular(
+                new AnularAporteCommand(id, req.afiliadoId(), req.motivo())));
     }
 }

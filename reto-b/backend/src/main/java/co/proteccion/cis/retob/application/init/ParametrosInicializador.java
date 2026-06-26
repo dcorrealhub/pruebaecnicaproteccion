@@ -18,6 +18,9 @@ public class ParametrosInicializador {
 
     private final ParametroRepository parametroRepository;
 
+    @Value("${aporte.monto-minimo:10000}")
+    private BigDecimal montoMinimoDefault;
+
     @Value("${aporte.tope-mensual:10000000}")
     private BigDecimal topeMensualDefault;
 
@@ -30,6 +33,7 @@ public class ParametrosInicializador {
         if (parametroRepository.findLatest().isEmpty()) {
             parametroRepository.guardarCambio(new ParametrosFondo(
                     null,
+                    montoMinimoDefault,
                     topeMensualDefault,
                     umbralRevisionDefault,
                     "SYSTEM",

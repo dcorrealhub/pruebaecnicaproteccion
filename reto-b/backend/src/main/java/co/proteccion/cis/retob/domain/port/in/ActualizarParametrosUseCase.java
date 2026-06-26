@@ -9,6 +9,7 @@ public interface ActualizarParametrosUseCase {
     ParametrosFondo actualizar(ActualizarParametrosCommand command);
 
     record ActualizarParametrosCommand(
+            BigDecimal montoMinimo,
             BigDecimal topeMensual,
             BigDecimal umbralRevision,
             String modificadoPor,

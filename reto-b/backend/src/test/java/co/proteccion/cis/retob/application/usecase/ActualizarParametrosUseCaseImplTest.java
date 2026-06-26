@@ -23,28 +23,30 @@ import static org.mockito.Mockito.*;
 @DisplayName("ActualizarParametrosUseCaseImpl")
 class ActualizarParametrosUseCaseImplTest {
 
+    static final BigDecimal MINIMO  = new BigDecimal("10000");
+    static final BigDecimal TOPE    = new BigDecimal("10000000");
+    static final BigDecimal UMBRAL  = new BigDecimal("5000000");
+
     @Mock ParametroRepository parametroRepository;
     @InjectMocks ActualizarParametrosUseCaseImpl useCase;
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
-
-    private ParametrosFondo parametrosGuardados(BigDecimal tope, BigDecimal umbral) {
-        return new ParametrosFondo("param-uuid-001", tope, umbral, "ADMIN", OffsetDateTime.now(), "test");
+    private ParametrosFondo parametrosGuardados(BigDecimal minimo, BigDecimal tope, BigDecimal umbral) {
+        return new ParametrosFondo("param-uuid-001", minimo, tope, umbral,
+                "ADMIN", OffsetDateTime.now(), "test");
     }
 
-    // ── Tests ─────────────────────────────────────────────────────────────────
+    private ActualizarParametrosCommand comando(BigDecimal minimo, BigDecimal tope, BigDecimal umbral) {
+        return new ActualizarParametrosCommand(minimo, tope, umbral, "ADMIN", "test");
+    }
 
     @Nested
-    @DisplayName("Regla de negocio: umbral debe ser menor al tope")
+    @DisplayName("Invariante: montoMinimo < umbralRevision < topeMensual")
     class ValidacionNegocio {
 
         @Test
         @DisplayName("umbralRevision igual al topeMensual lanza IllegalArgumentException")
         void umbral_igual_a_tope() {
-            var command = new ActualizarParametrosCommand(
-                    new BigDecimal("5000000"), new BigDecimal("5000000"), "ADMIN", "test");
-
-            assertThatThrownBy(() -> useCase.actualizar(command))
+            assertThatThrownBy(() -> useCase.actualizar(comando(MINIMO, new BigDecimal("5000000"), new BigDecimal("5000000"))))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("umbral")
                     .hasMessageContaining("tope");
@@ -55,10 +57,27 @@ class ActualizarParametrosUseCaseImplTest {
         @Test
         @DisplayName("umbralRevision mayor al topeMensual lanza IllegalArgumentException")
         void umbral_mayor_que_tope() {
-            var command = new ActualizarParametrosCommand(
-                    new BigDecimal("5000000"), new BigDecimal("6000000"), "ADMIN", "test");
+            assertThatThrownBy(() -> useCase.actualizar(comando(MINIMO, new BigDecimal("5000000"), new BigDecimal("6000000"))))
+                    .isInstanceOf(IllegalArgumentException.class);
 
-            assertThatThrownBy(() -> useCase.actualizar(command))
+            verifyNoInteractions(parametroRepository);
+        }
+
+        @Test
+        @DisplayName("montoMinimo igual al umbralRevision lanza IllegalArgumentException")
+        void minimo_igual_a_umbral() {
+            assertThatThrownBy(() -> useCase.actualizar(comando(UMBRAL, TOPE, UMBRAL)))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("monto mínimo");
+
+            verifyNoInteractions(parametroRepository);
+        }
+
+        @Test
+        @DisplayName("montoMinimo mayor al umbralRevision lanza IllegalArgumentException")
+        void minimo_mayor_que_umbral() {
+            assertThatThrownBy(() -> useCase.actualizar(
+                    comando(new BigDecimal("6000000"), TOPE, UMBRAL)))
                     .isInstanceOf(IllegalArgumentException.class);
 
             verifyNoInteractions(parametroRepository);
@@ -70,30 +89,28 @@ class ActualizarParametrosUseCaseImplTest {
     class CasoValido {
 
         @Test
-        @DisplayName("umbralRevision menor al topeMensual persiste y retorna el nuevo registro")
+        @DisplayName("parámetros coherentes (minimo < umbral < tope) persisten correctamente")
         void persiste_correctamente() {
-            BigDecimal tope   = new BigDecimal("10000000");
-            BigDecimal umbral = new BigDecimal("4000000");
-            var command = new ActualizarParametrosCommand(tope, umbral, "ADMIN", "Ajuste Q3");
-
             when(parametroRepository.guardarCambio(any()))
-                    .thenReturn(parametrosGuardados(tope, umbral));
+                    .thenReturn(parametrosGuardados(MINIMO, TOPE, UMBRAL));
 
-            ParametrosFondo resultado = useCase.actualizar(command);
+            ParametrosFondo resultado = useCase.actualizar(comando(MINIMO, TOPE, UMBRAL));
 
-            assertThat(resultado.getTopeMensual()).isEqualByComparingTo(tope);
-            assertThat(resultado.getUmbralRevision()).isEqualByComparingTo(umbral);
+            assertThat(resultado.getMontoMinimo()).isEqualByComparingTo(MINIMO);
+            assertThat(resultado.getTopeMensual()).isEqualByComparingTo(TOPE);
+            assertThat(resultado.getUmbralRevision()).isEqualByComparingTo(UMBRAL);
         }
 
         @Test
         @DisplayName("el registro guardado lleva modificadoPor y comentario correctos")
         void registro_con_datos_correctos() {
             var command = new ActualizarParametrosCommand(
-                    new BigDecimal("10000000"), new BigDecimal("3000000"), "compliance-bot", "Normativa 2026");
+                    new BigDecimal("100000"), new BigDecimal("10000000"),
+                    new BigDecimal("3000000"), "compliance-bot", "Normativa 2026");
 
             ArgumentCaptor<ParametrosFondo> captor = ArgumentCaptor.forClass(ParametrosFondo.class);
             when(parametroRepository.guardarCambio(captor.capture()))
-                    .thenReturn(parametrosGuardados(command.topeMensual(), command.umbralRevision()));
+                    .thenReturn(parametrosGuardados(command.montoMinimo(), command.topeMensual(), command.umbralRevision()));
 
             useCase.actualizar(command);
 
@@ -101,7 +118,7 @@ class ActualizarParametrosUseCaseImplTest {
             assertThat(guardado.getModificadoPor()).isEqualTo("compliance-bot");
             assertThat(guardado.getComentario()).isEqualTo("Normativa 2026");
             assertThat(guardado.getModificadoEn()).isNotNull();
-            assertThat(guardado.getId()).isNull(); // id lo asigna la DB
+            assertThat(guardado.getId()).isNull();
         }
     }
 }

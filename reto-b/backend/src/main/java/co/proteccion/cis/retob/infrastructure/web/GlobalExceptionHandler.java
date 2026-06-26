@@ -1,7 +1,10 @@
 package co.proteccion.cis.retob.infrastructure.web;
 
+import co.proteccion.cis.retob.domain.exception.AfiliadoBloqueadoException;
 import co.proteccion.cis.retob.domain.exception.AfiliadoNotFoundException;
+import co.proteccion.cis.retob.domain.exception.AporteNoAutorizadoException;
 import co.proteccion.cis.retob.domain.exception.AporteNotFoundException;
+import co.proteccion.cis.retob.domain.exception.MontoMinimoNoAlcanzadoException;
 import co.proteccion.cis.retob.domain.exception.TopeMensualExcedidoException;
 import co.proteccion.cis.retob.domain.exception.TransicionEstadoInvalidaException;
 import jakarta.persistence.OptimisticLockException;
@@ -29,6 +32,24 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     public Map<String, String> handleTopeMensual(TopeMensualExcedidoException ex) {
         return errorBody("TOPE_MENSUAL_EXCEDIDO", ex.getMessage());
+    }
+
+    @ExceptionHandler(MontoMinimoNoAlcanzadoException.class)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    public Map<String, String> handleMontoMinimo(MontoMinimoNoAlcanzadoException ex) {
+        return errorBody("MONTO_MINIMO_NO_ALCANZADO", ex.getMessage());
+    }
+
+    @ExceptionHandler(AfiliadoBloqueadoException.class)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    public Map<String, String> handleAfiliadoBloqueado(AfiliadoBloqueadoException ex) {
+        return errorBody("AFILIADO_BLOQUEADO", ex.getMessage());
+    }
+
+    @ExceptionHandler(AporteNoAutorizadoException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public Map<String, String> handleAporteNoAutorizado(AporteNoAutorizadoException ex) {
+        return errorBody("APORTE_NO_AUTORIZADO", ex.getMessage());
     }
 
     @ExceptionHandler(TransicionEstadoInvalidaException.class)

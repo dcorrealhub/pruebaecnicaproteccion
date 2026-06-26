@@ -23,6 +23,9 @@ public class ParametrosFondoEntity {
     @Column(columnDefinition = "UUID", nullable = false, updatable = false)
     private UUID id;
 
+    @Column(name = "monto_minimo", nullable = false, precision = 15, scale = 2)
+    private BigDecimal montoMinimo;
+
     @Column(name = "tope_mensual", nullable = false, precision = 15, scale = 2)
     private BigDecimal topeMensual;
 

@@ -6,6 +6,7 @@ import java.time.OffsetDateTime;
 public final class ParametrosFondo {
 
     private final String id;
+    private final BigDecimal montoMinimo;
     private final BigDecimal topeMensual;
     private final BigDecimal umbralRevision;
     private final String modificadoPor;
@@ -13,12 +14,14 @@ public final class ParametrosFondo {
     private final String comentario;
 
     public ParametrosFondo(String id,
+                           BigDecimal montoMinimo,
                            BigDecimal topeMensual,
                            BigDecimal umbralRevision,
                            String modificadoPor,
                            OffsetDateTime modificadoEn,
                            String comentario) {
         this.id = id;
+        this.montoMinimo = montoMinimo;
         this.topeMensual = topeMensual;
         this.umbralRevision = umbralRevision;
         this.modificadoPor = modificadoPor;
@@ -27,6 +30,7 @@ public final class ParametrosFondo {
     }
 
     public String getId()                   { return id; }
+    public BigDecimal getMontoMinimo()      { return montoMinimo; }
     public BigDecimal getTopeMensual()      { return topeMensual; }
     public BigDecimal getUmbralRevision()   { return umbralRevision; }
     public String getModificadoPor()        { return modificadoPor; }

@@ -18,6 +18,12 @@ public class ActualizarParametrosUseCaseImpl implements ActualizarParametrosUseC
     @Override
     @Transactional
     public ParametrosFondo actualizar(ActualizarParametrosCommand command) {
+        // Invariante: montoMinimo < umbralRevision < topeMensual
+        if (command.montoMinimo().compareTo(command.umbralRevision()) >= 0) {
+            throw new IllegalArgumentException(
+                    "El monto mínimo (" + command.montoMinimo() +
+                    ") debe ser menor al umbral de revisión (" + command.umbralRevision() + ").");
+        }
         if (command.umbralRevision().compareTo(command.topeMensual()) >= 0) {
             throw new IllegalArgumentException(
                     "El umbral de revisión (" + command.umbralRevision() +
@@ -25,6 +31,7 @@ public class ActualizarParametrosUseCaseImpl implements ActualizarParametrosUseC
         }
         ParametrosFondo nuevo = new ParametrosFondo(
                 null,
+                command.montoMinimo(),
                 command.topeMensual(),
                 command.umbralRevision(),
                 command.modificadoPor(),

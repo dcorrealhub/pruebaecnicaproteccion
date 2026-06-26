@@ -40,6 +40,7 @@ class AporteControllerTest {
     @MockBean ConsultarAportesUseCase    consultarUseCase;
     @MockBean CambiarEstadoAporteUseCase cambiarEstadoUseCase;
     @MockBean ConsultarRevisionesUseCase consultarRevisionesUseCase;
+    @MockBean AnularAporteUseCase        anularAporteUseCase;
 
     private Aporte aporteStub(EstadoAporte estado) {
         return new Aporte(APORTE_UUID, "AF-001", new BigDecimal("1000000"),

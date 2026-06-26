@@ -35,6 +35,7 @@ public class JpaParametroRepositoryAdapter implements ParametroRepository {
     private ParametrosFondoEntity toEntity(ParametrosFondo p) {
         return ParametrosFondoEntity.builder()
                 .id(p.getId() != null ? UUID.fromString(p.getId()) : null)
+                .montoMinimo(p.getMontoMinimo())
                 .topeMensual(p.getTopeMensual())
                 .umbralRevision(p.getUmbralRevision())
                 .modificadoPor(p.getModificadoPor())
@@ -44,7 +45,8 @@ public class JpaParametroRepositoryAdapter implements ParametroRepository {
     }
 
     private ParametrosFondo toDomain(ParametrosFondoEntity e) {
-        return new ParametrosFondo(e.getId().toString(), e.getTopeMensual(), e.getUmbralRevision(),
+        return new ParametrosFondo(e.getId().toString(), e.getMontoMinimo(),
+                e.getTopeMensual(), e.getUmbralRevision(),
                 e.getModificadoPor(), e.getModificadoEn(), e.getComentario());
     }
 }

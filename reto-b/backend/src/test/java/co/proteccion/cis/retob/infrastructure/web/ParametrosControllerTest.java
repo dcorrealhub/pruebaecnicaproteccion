@@ -32,15 +32,13 @@ class ParametrosControllerTest {
     @MockBean ConsultarParametrosUseCase  consultarUseCase;
     @MockBean ActualizarParametrosUseCase actualizarUseCase;
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
-
     private ParametrosFondo parametrosStub() {
         return new ParametrosFondo("param-uuid-001",
-                new BigDecimal("10000000"), new BigDecimal("5000000"),
+                new BigDecimal("10000"),
+                new BigDecimal("10000000"),
+                new BigDecimal("5000000"),
                 "SYSTEM", OffsetDateTime.now(), "Carga inicial");
     }
-
-    // ── GET /api/parametros/actual ────────────────────────────────────────────
 
     @Nested
     @DisplayName("GET /api/parametros/actual")
@@ -53,6 +51,7 @@ class ParametrosControllerTest {
 
             mvc.perform(get("/api/parametros/actual"))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.montoMinimo").value(10000))
                 .andExpect(jsonPath("$.topeMensual").value(10000000))
                 .andExpect(jsonPath("$.umbralRevision").value(5000000))
                 .andExpect(jsonPath("$.modificadoPor").value("SYSTEM"));
@@ -68,8 +67,6 @@ class ParametrosControllerTest {
         }
     }
 
-    // ── GET /api/parametros/historial ─────────────────────────────────────────
-
     @Nested
     @DisplayName("GET /api/parametros/historial")
     class ConsultarHistorial {
@@ -78,7 +75,9 @@ class ParametrosControllerTest {
         @DisplayName("devuelve lista con todos los registros históricos")
         void historial_con_registros() throws Exception {
             ParametrosFondo p2 = new ParametrosFondo("param-uuid-002",
-                    new BigDecimal("12000000"), new BigDecimal("6000000"),
+                    new BigDecimal("10000"),
+                    new BigDecimal("12000000"),
+                    new BigDecimal("6000000"),
                     "ADMIN", OffsetDateTime.now(), "Ajuste Q2");
             when(consultarUseCase.consultarHistorial()).thenReturn(List.of(parametrosStub(), p2));
 
@@ -99,8 +98,6 @@ class ParametrosControllerTest {
         }
     }
 
-    // ── POST /api/parametros ──────────────────────────────────────────────────
-
     @Nested
     @DisplayName("POST /api/parametros — actualizar")
     class Actualizar {
@@ -109,16 +106,19 @@ class ParametrosControllerTest {
         @DisplayName("parámetros válidos devuelven 201 con el nuevo registro")
         void actualizar_exitoso() throws Exception {
             ParametrosFondo nuevo = new ParametrosFondo("param-uuid-003",
-                    new BigDecimal("12000000"), new BigDecimal("4000000"),
+                    new BigDecimal("10000"),
+                    new BigDecimal("12000000"),
+                    new BigDecimal("4000000"),
                     "ADMIN", OffsetDateTime.now(), "Ajuste Q3");
             when(actualizarUseCase.actualizar(any())).thenReturn(nuevo);
 
             mvc.perform(post("/api/parametros").contentType(MediaType.APPLICATION_JSON)
                     .content("""
-                        {"topeMensual":12000000,"umbralRevision":4000000,
+                        {"montoMinimo":10000,"topeMensual":12000000,"umbralRevision":4000000,
                          "modificadoPor":"ADMIN","comentario":"Ajuste Q3"}
                         """))
                 .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.montoMinimo").value(10000))
                 .andExpect(jsonPath("$.topeMensual").value(12000000))
                 .andExpect(jsonPath("$.modificadoPor").value("ADMIN"));
         }
@@ -132,7 +132,7 @@ class ParametrosControllerTest {
 
             mvc.perform(post("/api/parametros").contentType(MediaType.APPLICATION_JSON)
                     .content("""
-                        {"topeMensual":5000000,"umbralRevision":6000000,
+                        {"montoMinimo":10000,"topeMensual":5000000,"umbralRevision":6000000,
                          "modificadoPor":"ADMIN","comentario":"error"}
                         """))
                 .andExpect(status().isConflict())
@@ -145,10 +145,21 @@ class ParametrosControllerTest {
         void tope_nulo() throws Exception {
             mvc.perform(post("/api/parametros").contentType(MediaType.APPLICATION_JSON)
                     .content("""
-                        {"umbralRevision":3000000,"modificadoPor":"ADMIN","comentario":"X"}
+                        {"montoMinimo":10000,"umbralRevision":3000000,"modificadoPor":"ADMIN","comentario":"X"}
                         """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.campos.topeMensual").exists());
+        }
+
+        @Test
+        @DisplayName("montoMinimo nulo devuelve 400 con campo en el error")
+        void monto_minimo_nulo() throws Exception {
+            mvc.perform(post("/api/parametros").contentType(MediaType.APPLICATION_JSON)
+                    .content("""
+                        {"topeMensual":10000000,"umbralRevision":5000000,"modificadoPor":"ADMIN","comentario":"X"}
+                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.montoMinimo").exists());
         }
 
         @Test
@@ -156,7 +167,7 @@ class ParametrosControllerTest {
         void modificado_por_vacio() throws Exception {
             mvc.perform(post("/api/parametros").contentType(MediaType.APPLICATION_JSON)
                     .content("""
-                        {"topeMensual":10000000,"umbralRevision":5000000,"modificadoPor":"","comentario":"X"}
+                        {"montoMinimo":10000,"topeMensual":10000000,"umbralRevision":5000000,"modificadoPor":"","comentario":"X"}
                         """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.campos.modificadoPor").exists());
