@@ -41,4 +41,6 @@ Compacté la sesión del Reto A antes de empezar — contexto limpio, intención
 - Paquete `auth` aislado (`infrastructure.web.auth`) — si cambia el mecanismo de autenticación, se toca un solo paquete sin afectar controladores de negocio.
 
 **4. ¿Qué falta para producción en SFC?**  
+**Despliegue:** Railway (backend) + Vercel (frontend), BD ya en Railway. Decisión por agilidad en el contexto de la prueba. En un entorno SFC real se iría por IaC sobre infraestructura propia — Railway y Vercel son para productos que requieren agilidad o que no están en el centro del negocio.
+
 SonarQube en el pipeline con quality gate (responsabilidad del equipo de infra, no del dev). El dev usa SonarLint en el IDE o el SonarQube de desarrollo para detectar problemas antes de subir. Umbral mínimo de cobertura definido por el equipo, referencia estándar 80% en módulos críticos. Usuarios en BD (no en memoria), gestión de secretos real, HTTPS obligatorio, refresh tokens, rate limiting en `/auth/login` y logs de auditoría inmutables.
