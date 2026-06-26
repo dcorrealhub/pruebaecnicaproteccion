@@ -39,12 +39,15 @@ Estado del proceso de corrección de los hallazgos **Críticos** y **Altos** ide
 > **Commit:** `fix(reto-a): eliminar jdbctemplate del controller y agregar validacion jsr-380 en aporterequest`
 
 ### Fase 3 — Concurrencia e Idempotencia *(Hallazgos N° 3, 5, 6, 9, 10)*
-- [ ] **[fix]** Agregar `@Version` en `Saldo.java` para locking optimista *(Hallazgo N° 3 — Crítico)*
-- [ ] **[feat]** Implementar llave de idempotencia `idempotencyKey` en `AporteRequest` y tabla `aporte` *(Hallazgo N° 5 — Crítico)*
-- [ ] **[fix]** Agregar `@Transactional(rollbackFor = Exception.class)` en `AporteService.registrar()` *(Hallazgo N° 6 — Alto)*
-- [ ] **[fix]** Corregir orden de persistencia: `aporteRepo.save()` antes de `eventoRepo.save()` *(Hallazgo N° 14 — Medio)*
-- [ ] **[fix]** Eliminar `afiliadoId` del mensaje de excepción expuesto al cliente *(Hallazgo N° 9 — Alto)*
-- [ ] **[fix]** Mover monto a nivel `DEBUG` en logs, INFO solo publica `aporteId` *(Hallazgo N° 10 — Alto)*
+- [x] **[fix]** Locking pesimista `@Lock(PESSIMISTIC_WRITE)` en `SaldoJpaRepository.findByAfiliadoIdForUpdate()` para serializar acceso concurrente al saldo *(Hallazgo N° 3 — Crítico)*
+- [x] **[feat]** Implementar llave de idempotencia `idempotencyKey` (UUID v4) en `AporteRequest` y tabla `aporte` con constraint `UNIQUE` *(Hallazgo N° 5 — Crítico)*
+- [x] **[fix]** Agregar `@Transactional(rollbackFor = Exception.class)` en `AporteService.registrar()` — requerido para que el lock pesimista proteja toda la operación *(Hallazgo N° 6 — Alto)*
+- [x] **[fix]** Corregir orden de persistencia: `aporteRepo.save()` antes de `eventoRepo.save(new EventoAporte(saved))` *(Hallazgo N° 14 — Medio)*
+- [x] **[fix]** Eliminar `afiliadoId` del mensaje de excepción expuesto al cliente *(Hallazgo N° 9 — Alto)*
+- [x] **[fix]** Mover monto a nivel `DEBUG` en logs, INFO solo publica `aporteId`, `periodo` y `marcadaRevision` *(Hallazgo N° 10 — Alto)*
+
+> **Commit:** `fix(reto-a): implementar transaccionalidad y locking pesimista contra condiciones de carrera`
+> **Commit:** `feat(reto-a): agregar llave de idempotencia en registro de aportes`
 
 ### Fase 4 — Arquitectura y Calidad *(Hallazgos N° 12, 13, 14, 15)*
 - [ ] **[refactor]** Crear jerarquía de excepciones de dominio + `@RestControllerAdvice` *(Hallazgo N° 12 — Medio)*

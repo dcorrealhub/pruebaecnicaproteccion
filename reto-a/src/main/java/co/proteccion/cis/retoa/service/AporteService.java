@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -33,6 +34,7 @@ public class AporteService {
     @Value("${aporte.umbral-revision:5000000}")
     private String umbralRevisionStr;
 
+    @Transactional(rollbackFor = Exception.class)
     public Aporte registrar(AporteRequest req) {
         BigDecimal topeMensual    = new BigDecimal(topeMensualStr);
         BigDecimal umbralRevision = new BigDecimal(umbralRevisionStr);
@@ -42,9 +44,10 @@ public class AporteService {
             throw new IllegalArgumentException("El monto debe ser positivo");
         }
 
-        Saldo s = saldoRepo.findByAfiliadoId(req.getAfiliadoId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Afiliado no encontrado: " + req.getAfiliadoId()));
+        // Hallazgo N° 3: locking pesimista serializa el acceso al saldo bajo concurrencia
+        // Hallazgo N° 9: mensaje genérico — no exponer afiliadoId al cliente
+        Saldo s = saldoRepo.findByAfiliadoIdForUpdate(req.getAfiliadoId())
+                .orElseThrow(() -> new IllegalArgumentException("Afiliado no encontrado"));
 
         // Hallazgo N° 4 corregido: compareTo() > 0 en lugar de == topeMensual
         BigDecimal nuevo = s.getTotalMes().add(monto);
@@ -65,13 +68,15 @@ public class AporteService {
         aporte.setPeriodo(periodo);
         aporte.setMarcadaRevision(monto.compareTo(umbralRevision) > 0);
 
-        eventoRepo.save(new EventoAporte(aporte));
-
+        // Hallazgo N° 14: persistir aporte primero para obtener el ID antes de crear el evento
         Aporte saved = aporteRepo.save(aporte);
+        eventoRepo.save(new EventoAporte(saved));
 
-        // Hallazgo N° 10 parcial: INFO no expone el monto exacto ni el afiliadoId
+        // Hallazgo N° 10: INFO solo publica metadatos no financieros; monto en DEBUG
         log.info("Aporte registrado. aporteId={} periodo={} marcadaRevision={}",
                 saved.getId(), saved.getPeriodo(), saved.isMarcadaRevision());
+        log.debug("Aporte detalle. aporteId={} monto={} afiliadoId={}",
+                saved.getId(), saved.getMonto(), saved.getAfiliadoId());
 
         return saved;
     }
