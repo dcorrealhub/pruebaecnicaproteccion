@@ -1,0 +1,14 @@
+:root {
+  --color-error: #b91c1c;
+  --color-warning: #d97706;
+  --color-muted: #6b7280;
+  --color-border: #d1d5db;
+  --color-text: #111827;
+  --radius-sm: 4px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}

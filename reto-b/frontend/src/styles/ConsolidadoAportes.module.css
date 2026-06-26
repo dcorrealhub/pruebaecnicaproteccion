@@ -1,0 +1,86 @@
+.title {
+  font-size: 18px;
+  margin: 0 0 16px;
+}
+
+.searchForm {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 24px;
+}
+
+.label {
+  display: block;
+}
+
+.input {
+  display: block;
+  margin-top: 4px;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+}
+
+.fieldError {
+  display: block;
+  color: var(--color-error);
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.submitButton {
+  align-self: flex-end;
+  padding: 8px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.serverError {
+  color: var(--color-error);
+}
+
+.resultSection {
+  margin-top: 16px;
+}
+
+.totalRow {
+  font-size: 15px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+.table th {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.caption {
+  text-align: left;
+  margin-bottom: 8px;
+  color: var(--color-muted);
+}
+
+.emptyResult {
+  color: var(--color-muted);
+}

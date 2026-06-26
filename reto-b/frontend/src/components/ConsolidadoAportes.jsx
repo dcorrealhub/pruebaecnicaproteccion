@@ -1,12 +1,8 @@
 import { useState, useCallback } from 'react'
 import { consultarConsolidado } from '../api/aportesApi'
+import styles from '../styles/ConsolidadoAportes.module.css'
 
-const COLOR_ERROR = '#b91c1c'
-const COLOR_MUTED = '#6b7280'
 const PERIODO_REGEX = /^\d{4}-(0[1-9]|1[0-2])$/
-
-const th = { padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #ccc' }
-const td = { padding: '8px 12px', borderBottom: '1px solid #eee' }
 
 function validarFiltros({ afiliadoId, periodoDesde, periodoHasta }) {
   const errores = {}
@@ -67,24 +63,24 @@ export default function ConsolidadoAportes() {
 
   return (
     <div>
-      <h2 style={{ fontSize: 18, marginBottom: 16 }}>Consolidado de aportes</h2>
+      <h2 className={styles.title}>Consolidado de aportes</h2>
 
-      <form onSubmit={handleBuscar} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 24 }}>
-        <label>
+      <form onSubmit={handleBuscar} className={styles.searchForm}>
+        <label className={styles.label}>
           ID Afiliado
           <input
             value={filtros.afiliadoId}
             onChange={e => actualizarCampo('afiliadoId', e.target.value)}
             placeholder="AF-001"
             required
-            style={{ display: 'block', marginTop: 4 }}
+            className={styles.input}
           />
           {errores.afiliadoId && (
-            <span role="alert" style={{ display: 'block', color: COLOR_ERROR, fontSize: 13, marginTop: 2 }}>{errores.afiliadoId}</span>
+            <span role="alert" className={styles.fieldError}>{errores.afiliadoId}</span>
           )}
         </label>
 
-        <label>
+        <label className={styles.label}>
           Periodo desde
           <input
             value={filtros.periodoDesde}
@@ -92,14 +88,14 @@ export default function ConsolidadoAportes() {
             placeholder="2025-01"
             pattern="\d{4}-\d{2}"
             required
-            style={{ display: 'block', marginTop: 4 }}
+            className={styles.input}
           />
           {errores.periodoDesde && (
-            <span role="alert" style={{ display: 'block', color: COLOR_ERROR, fontSize: 13, marginTop: 2 }}>{errores.periodoDesde}</span>
+            <span role="alert" className={styles.fieldError}>{errores.periodoDesde}</span>
           )}
         </label>
 
-        <label>
+        <label className={styles.label}>
           Periodo hasta
           <input
             value={filtros.periodoHasta}
@@ -107,55 +103,55 @@ export default function ConsolidadoAportes() {
             placeholder="2025-06"
             pattern="\d{4}-\d{2}"
             required
-            style={{ display: 'block', marginTop: 4 }}
+            className={styles.input}
           />
           {errores.periodoHasta && (
-            <span role="alert" style={{ display: 'block', color: COLOR_ERROR, fontSize: 13, marginTop: 2 }}>{errores.periodoHasta}</span>
+            <span role="alert" className={styles.fieldError}>{errores.periodoHasta}</span>
           )}
         </label>
 
-        <button type="submit" disabled={cargando} style={{ alignSelf: 'flex-end' }}>
+        <button type="submit" disabled={cargando} className={styles.submitButton}>
           {cargando ? 'Consultando...' : 'Consultar'}
         </button>
       </form>
 
       {error && (
-        <p role="alert" style={{ color: COLOR_ERROR }}>{error}</p>
+        <p role="alert" className={styles.serverError}>{error}</p>
       )}
 
       {consultado && consolidado && (
-        <div role="region" aria-label="Resultado del consolidado">
-          <p>
+        <div role="region" aria-label="Resultado del consolidado" className={styles.resultSection}>
+          <p className={styles.totalRow}>
             <strong>Total aportado:</strong>{' '}
             {consolidado.totalAportado?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
           </p>
 
           {consolidado.detalle?.length > 0 ? (
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12 }}>
-              <caption style={{ textAlign: 'left', marginBottom: 8, color: COLOR_MUTED }}>
+            <table className={styles.table}>
+              <caption className={styles.caption}>
                 {consolidado.detalle.length} aporte{consolidado.detalle.length !== 1 ? 's' : ''} encontrado{consolidado.detalle.length !== 1 ? 's' : ''}
               </caption>
               <thead>
-                <tr style={{ background: '#eee' }}>
-                  <th style={th}>Fecha</th>
-                  <th style={th}>Monto</th>
-                  <th style={th}>Canal</th>
-                  <th style={th}>Revisión</th>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Monto</th>
+                  <th>Canal</th>
+                  <th>Revisión</th>
                 </tr>
               </thead>
               <tbody>
                 {consolidado.detalle.map(a => (
                   <tr key={a.id}>
-                    <td style={td}>{a.fecha}</td>
-                    <td style={td}>{a.monto?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</td>
-                    <td style={td}>{a.canal}</td>
-                    <td style={td}>{a.marcadaRevision ? 'Sí' : 'No'}</td>
+                    <td>{a.fecha}</td>
+                    <td>{a.monto?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</td>
+                    <td>{a.canal}</td>
+                    <td>{a.marcadaRevision ? 'Sí' : 'No'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           ) : (
-            <p style={{ color: COLOR_MUTED }}>No se encontraron aportes en el periodo indicado.</p>
+            <p className={styles.emptyResult}>No se encontraron aportes en el periodo indicado.</p>
           )}
         </div>
       )}

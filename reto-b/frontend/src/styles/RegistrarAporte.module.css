@@ -1,0 +1,84 @@
+.title {
+  font-size: 18px;
+  margin: 0 0 16px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 400px;
+}
+
+.label {
+  display: block;
+}
+
+.input {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+}
+
+.select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  background: #fff;
+}
+
+.fieldError {
+  color: var(--color-error);
+  font-size: 13px;
+}
+
+.submitButton {
+  align-self: flex-start;
+  padding: 8px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.serverError {
+  color: var(--color-error);
+  margin-top: 16px;
+}
+
+.successCard {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.successText {
+  margin: 0;
+}
+
+.successId {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.revisionWarning {
+  color: var(--color-warning);
+  margin: 8px 0 0;
+  font-weight: 500;
+}

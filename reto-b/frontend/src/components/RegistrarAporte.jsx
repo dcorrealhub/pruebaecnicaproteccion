@@ -1,9 +1,6 @@
 import { useState, useCallback } from 'react'
 import { registrarAporte } from '../api/aportesApi'
-
-const COLOR_ERROR = '#b91c1c'
-const COLOR_WARNING = '#d97706'
-const COLOR_MUTED = '#6b7280'
+import styles from '../styles/RegistrarAporte.module.css'
 
 function validarCampos({ afiliadoId, monto }) {
   const errores = {}
@@ -60,24 +57,24 @@ export default function RegistrarAporte() {
 
   return (
     <div>
-      <h2 style={{ fontSize: 18, marginBottom: 16 }}>Registrar aporte</h2>
+      <h2 className={styles.title}>Registrar aporte</h2>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 400 }}>
-        <label>
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <label className={styles.label}>
           ID Afiliado
           <input
             value={form.afiliadoId}
             onChange={e => actualizarCampo('afiliadoId', e.target.value)}
             placeholder="AF-001"
             required
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
+            className={styles.input}
           />
           {errores.afiliadoId && (
-            <span role="alert" style={{ color: COLOR_ERROR, fontSize: 13 }}>{errores.afiliadoId}</span>
+            <span role="alert" className={styles.fieldError}>{errores.afiliadoId}</span>
           )}
         </label>
 
-        <label>
+        <label className={styles.label}>
           Monto (COP)
           <input
             type="number"
@@ -87,19 +84,19 @@ export default function RegistrarAporte() {
             onChange={e => actualizarCampo('monto', e.target.value)}
             placeholder="0.00"
             required
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
+            className={styles.input}
           />
           {errores.monto && (
-            <span role="alert" style={{ color: COLOR_ERROR, fontSize: 13 }}>{errores.monto}</span>
+            <span role="alert" className={styles.fieldError}>{errores.monto}</span>
           )}
         </label>
 
-        <label>
+        <label className={styles.label}>
           Canal
           <select
             value={form.canal}
             onChange={e => setForm(f => ({ ...f, canal: e.target.value }))}
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
+            className={styles.select}
           >
             <option value="APP_MOVIL">App móvil</option>
             <option value="WEB">Web</option>
@@ -107,21 +104,21 @@ export default function RegistrarAporte() {
           </select>
         </label>
 
-        <button type="submit" disabled={cargando} style={{ alignSelf: 'flex-start' }}>
+        <button type="submit" disabled={cargando} className={styles.submitButton}>
           {cargando ? 'Registrando...' : 'Registrar'}
         </button>
       </form>
 
       {error && (
-        <p role="alert" style={{ color: COLOR_ERROR, marginTop: 16 }}>{error}</p>
+        <p role="alert" className={styles.serverError}>{error}</p>
       )}
 
       {resultado && (
-        <div role="status" style={{ marginTop: 16, padding: 16, border: '1px solid #d1d5db', borderRadius: 4 }}>
-          <p style={{ margin: 0 }}>Aporte registrado correctamente.</p>
-          <p style={{ margin: '4px 0 0', fontSize: 13, color: COLOR_MUTED }}>ID: {resultado.id}</p>
+        <div role="status" className={styles.successCard}>
+          <p className={styles.successText}>Aporte registrado correctamente.</p>
+          <p className={styles.successId}>ID: {resultado.id}</p>
           {resultado.marcadaRevision && (
-            <p style={{ color: COLOR_WARNING, margin: '8px 0 0', fontWeight: 500 }}>
+            <p className={styles.revisionWarning}>
               Este aporte superó el umbral definido y quedó marcado para revisión.
             </p>
           )}

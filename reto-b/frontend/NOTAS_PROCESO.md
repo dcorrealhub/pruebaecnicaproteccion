@@ -42,3 +42,16 @@ Ahora realiza la implementación sobre ConsolidadoAportes.jsx con los siguientes
 Si existe una implementación anterior, mejora el desarrollo
 
 **Respuesta:** Validaciones más específicas y el código un poco más claro. Reitero que el uso de skills mejora enormemente el comportamiento de un agente
+
+## 5.
+Crea CSS Module para la implmentación de los estilos ya definidos en los componentes. Haz un archivo por componente y aplica los cambios. Recuerda usar siempre /frontend-design. Separa los estilos en una carpeta styles dentro de src.
+
+**Respuesta:** Hace la modificación y el frontend continúa realizando las mismas validaciones y se le baja complejidad al código de los componentes. Lo demás ya es modificar estilos de forma personalizada
+
+# El proyecto se ejecutó correctamente:
+
+![alt text](image.png)
+
+## Uso de opencode
+
+![alt text](image-1.png)

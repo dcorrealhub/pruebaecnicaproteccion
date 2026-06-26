@@ -35,3 +35,11 @@ Verifica que las capas estén implementadas, no modifiques, solo dime qué cambi
 se le hizo la petición al agente y este listó pequeñas modificaciones poco relevantes. Reviso el código restante y
 encuentro que en el manejo de errores globales se inyectó un enlace no válido por lo que procedo a eliminarlo. 
 Acá decido no modificar más código
+
+# El proyecto ejecutó correctamente, sin errores:
+
+![img.png](img.png)
+
+## Uso de opencode
+
+![img_1.png](img_1.png)
