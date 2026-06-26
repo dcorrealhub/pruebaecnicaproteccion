@@ -90,6 +90,25 @@ de estados y de la estrategia de concurrencia/idempotencia, generación del plan
 pruebas. Las decisiones de negocio (umbral reserva cupo del tope, parámetros en BD,
 idempotencia por clave explícita) se tomaron y validaron explícitamente antes de codificar.
 
+## 9. Evidencias
+
+1. Registro de un aporte válido
+![img.png](img.png)
+2. Registro de un aporte que excede el umbral y queda pendiente de revisión
+![img_1.png](img_1.png)
+3. Registro de un aporte que excede el tope y es rechazado
+![img_2.png](img_2.png)
+4. Consulta del consolidado de aportes de un afiliado
+![img_5.png](img_5.png)
+5. Aprobación de un aporte pendiente
+![img_6.png](img_6.png)
+6. Rechazo de un aporte pendiente que libera el cupo
+![img_7.png](img_7.png)
+7. Modificacion de parámetros de negocio en tiempo de ejecución
+![img_8.png](img_8.png)
+8. Cobertura de pruebas unitarias
+![img_9.png](img_9.png)
+
 ## 9. Qué falta para producción en un entorno SFC
 
 - **Observabilidad**: logs estructurados con `traceId`, métricas (Micrometer/Prometheus), health checks (Actuator) y trazas distribuidas; alertas sobre rechazos y pendientes.
