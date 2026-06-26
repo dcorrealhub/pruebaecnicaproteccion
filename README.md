@@ -104,6 +104,87 @@ npm install
 npm run dev              # Puerto 5173
 ```
 
+## Guía de instalación — Reto B desde cero
+
+### Prerrequisitos
+
+- Java 21
+- Maven 3.9+
+- Node 20+
+- Docker y Docker Compose
+
+### 1. Clonar el repositorio
+
+```bash
+git clone <url-del-repo>
+cd pruebaecnicaproteccion
+git checkout candidato/juan-esteban-valdes
+```
+
+### 2. Base de datos (PostgreSQL local vía Docker)
+
+```bash
+docker compose up -d
+```
+
+Levanta PostgreSQL en `localhost:5432`, base de datos `proteccion_reto`, usuario `postgres`, contraseña `postgres`. Flyway crea las tablas automáticamente al arrancar el backend.
+
+### 3. Variables de entorno del backend
+
+```bash
+cp reto-b/backend/.env.example reto-b/backend/.env
+```
+
+Edita `reto-b/backend/.env` con los valores reales:
+
+```
+DB_URL=jdbc:postgresql://localhost:5432/proteccion_reto
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+API_USERNAME=cis-user
+API_PASSWORD=Cis-Pass#2026
+JWT_SECRET=cis-proteccion-secret-key-2026-super-secure-32bytes
+```
+
+### 4. Levantar el backend
+
+```bash
+cd reto-b/backend
+./mvnw spring-boot:run
+```
+
+El backend queda disponible en `http://localhost:8082`. Para verificar:
+
+```bash
+curl -X POST http://localhost:8082/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"cis-user","password":"Cis-Pass#2026"}'
+# Respuesta esperada: {"token":"eyJ..."}
+```
+
+### 5. Levantar el frontend
+
+```bash
+cd reto-b/frontend
+npm install
+npm run dev
+```
+
+El frontend queda disponible en `http://localhost:5173`. El proxy de Vite redirige `/api` y `/auth` al backend automáticamente — no se necesita configuración adicional.
+
+### 6. Usar la aplicación
+
+1. Abrir `http://localhost:5173`
+2. Iniciar sesión con `cis-user` / `Cis-Pass#2026`
+3. Registrar aportes en la pestaña **Registrar**
+4. Consultar el consolidado por afiliado y periodo en la pestaña **Consolidado**
+
+### Despliegue en Railway + Vercel
+
+El backend está desplegado en Railway y el frontend en Vercel. Las variables de entorno del backend en Railway son las mismas del `.env` pero apuntando a la BD de Railway. Consultar `.env.example` para la estructura.
+
+---
+
 ## Instrucciones para candidatos
 
 1. **No hagas fork.** Clona este repositorio directamente.
