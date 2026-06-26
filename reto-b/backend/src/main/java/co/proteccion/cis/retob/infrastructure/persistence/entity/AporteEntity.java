@@ -1,5 +1,7 @@
 package co.proteccion.cis.retob.infrastructure.persistence.entity;
 
+import co.proteccion.cis.retob.domain.model.CanalOrigen;
+import co.proteccion.cis.retob.domain.model.EstadoAporte;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,14 +33,16 @@ public class AporteEntity {
     @Column(nullable = false)
     private LocalDate fecha;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
-    private String canal;
+    private CanalOrigen canal;
 
     @Column(nullable = false, length = 7)
     private String periodo;
 
-    @Column(name = "marcada_revision", nullable = false)
-    private boolean marcadaRevision;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private EstadoAporte estado;
 
     @Column(name = "idempotencia_key", nullable = false, unique = true, length = 100)
     private String idempotenciaKey;
