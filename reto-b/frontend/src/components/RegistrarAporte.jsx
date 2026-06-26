@@ -95,9 +95,9 @@ export default function RegistrarAporte() {
 
       {resultado && (
         <div style={{ marginTop: 16, padding: 12, background: '#f0f0f0' }}>
-          <p>Aporte registrado. ID: {resultado.id}</p>
-          {resultado.marcadaRevision && (
-            <p style={{ color: 'orange' }}>Este aporte quedó marcado para revisión.</p>
+          <p>Aporte registrado. ID: {resultado.id} — Estado: <strong>{resultado.estado}</strong></p>
+          {resultado.estado === 'EN_REVISION' && (
+            <p style={{ color: 'orange' }}>Este aporte quedó marcado para revisión manual.</p>
           )}
         </div>
       )}
