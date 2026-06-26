@@ -3,8 +3,10 @@ package co.proteccion.cis.retob.infrastructure.web;
 import co.proteccion.cis.retob.domain.exception.AfiliadoNotFoundException;
 import co.proteccion.cis.retob.domain.model.Afiliado;
 import co.proteccion.cis.retob.domain.model.EstadoAfiliado;
+import co.proteccion.cis.retob.domain.port.in.CambiarEstadoAfiliadoUseCase;
 import co.proteccion.cis.retob.domain.port.in.ConsultarAfiliadoUseCase;
 import co.proteccion.cis.retob.domain.port.in.RegistrarAfiliadoUseCase;
+import co.proteccion.cis.retob.domain.port.out.HistorialEstadoAfiliadoRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -30,8 +32,10 @@ class AfiliadoControllerTest {
 
     @Autowired MockMvc mvc;
 
-    @MockBean RegistrarAfiliadoUseCase  registrarUseCase;
-    @MockBean ConsultarAfiliadoUseCase  consultarUseCase;
+    @MockBean RegistrarAfiliadoUseCase          registrarUseCase;
+    @MockBean ConsultarAfiliadoUseCase          consultarUseCase;
+    @MockBean CambiarEstadoAfiliadoUseCase      cambiarEstadoAfiliadoUseCase;
+    @MockBean HistorialEstadoAfiliadoRepository historialRepository;
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 

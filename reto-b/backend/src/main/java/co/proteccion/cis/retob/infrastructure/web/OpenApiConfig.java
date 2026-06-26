@@ -21,7 +21,7 @@ public class OpenApiConfig {
                                 API REST para el registro y gestión de aportes voluntarios al fondo.
 
                                 **Flujo principal (revisor/operador):**
-                                1. Crear un afiliado (`POST /api/afiliados`)
+                                1. Crear un afiliado (`POST /api/afiliados`) y gestionar su estado (`PATCH /api/afiliados/{id}/estado`)
                                 2. Registrar aportes (`POST /api/aportes`) — idempotente por `idempotenciaKey`
                                 3. Consultar consolidado por periodo (`GET /api/aportes/consolidado`)
                                 4. Cambiar estado de aportes (`PATCH /api/aportes/{id}/estado`)
