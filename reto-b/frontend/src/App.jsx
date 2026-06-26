@@ -1,24 +1,31 @@
 import { useState } from 'react'
 import RegistrarAporte from './components/RegistrarAporte'
 import ConsolidadoAportes from './components/ConsolidadoAportes'
+import './styles.css'
 
 export default function App() {
   const [vistaActiva, setVistaActiva] = useState('registrar')
 
   return (
-    <div style={{ fontFamily: 'sans-serif', maxWidth: 800, margin: '0 auto', padding: 24 }}>
-      <h1 style={{ fontSize: 22, marginBottom: 24 }}>Aportes Voluntarios</h1>
+    <div className="app-shell">
+      <header className="app-header">
+        <div className="app-header__logo">P</div>
+        <div>
+          <div className="app-header__title">Aportes Voluntarios</div>
+          <div className="app-header__subtitle">CIS Proteccion S.A. — Sistema de fondos voluntarios</div>
+        </div>
+      </header>
 
-      <nav style={{ marginBottom: 24, display: 'flex', gap: 12 }}>
+      <nav className="nav-tabs">
         <button
+          className={`nav-tab ${vistaActiva === 'registrar' ? 'nav-tab--active' : ''}`}
           onClick={() => setVistaActiva('registrar')}
-          style={{ fontWeight: vistaActiva === 'registrar' ? 'bold' : 'normal' }}
         >
           Registrar aporte
         </button>
         <button
+          className={`nav-tab ${vistaActiva === 'consolidado' ? 'nav-tab--active' : ''}`}
           onClick={() => setVistaActiva('consolidado')}
-          style={{ fontWeight: vistaActiva === 'consolidado' ? 'bold' : 'normal' }}
         >
           Consolidado
         </button>
