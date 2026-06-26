@@ -1,0 +1,20 @@
+services:
+  retob-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: retob-backend
+    environment:
+      DB_URL: ${DB_URL}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SERVER_PORT: 8082
+      APORTE_TOPE_MENSUAL: ${APORTE_TOPE_MENSUAL:-10000000}
+      APORTE_UMBRAL_REVISION: ${APORTE_UMBRAL_REVISION:-5000000}
+    networks:
+      - reto-net
+    restart: unless-stopped
+
+networks:
+  reto-net:
+    external: true
