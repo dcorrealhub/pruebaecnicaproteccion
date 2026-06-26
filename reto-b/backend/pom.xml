@@ -20,6 +20,18 @@
 
     <properties>
         <java.version>21</java.version>
+        <sonar.coverage.jacoco.xmlReportPaths>
+            ${project.build.directory}/site/jacoco/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
+        <!-- Excluir de cobertura: entidades JPA, DTOs, enums, config y clase main -->
+        <sonar.coverage.exclusions>
+            **/infrastructure/persistence/entity/**,
+            **/infrastructure/web/dto/**,
+            **/infrastructure/web/OpenApiConfig.java,
+            **/domain/model/CanalOrigen.java,
+            **/domain/model/EstadoAfiliado.java,
+            **/RetoBApplication.java
+        </sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
@@ -95,6 +107,26 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <!-- JaCoCo: instrumenta bytecode y genera jacoco.xml para SonarQube -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <!-- Inyecta el agente de cobertura antes de los tests -->
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals><goal>prepare-agent</goal></goals>
+                    </execution>
+                    <!-- Genera el reporte XML en la fase verify -->
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals><goal>report</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
