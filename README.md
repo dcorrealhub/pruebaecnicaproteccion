@@ -60,6 +60,7 @@ Esto levanta PostgreSQL en `localhost:5432` con base de datos `proteccion_reto`,
 
 ```bash
 cd reto-b/backend
+./mvnw test        # Verifica que los tests pasan
 ./mvnw spring-boot:run   # Puerto 8082
 ```
 
