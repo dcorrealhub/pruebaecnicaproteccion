@@ -11,7 +11,7 @@ public final class SaldoMensual {
     private final Long id;
     private final String afiliadoId;
     private final String mes;       // formato YYYY-MM
-    private BigDecimal total;
+    private final BigDecimal total;
     private final Integer version;  // control de concurrencia optimista
 
     public SaldoMensual(Long id, String afiliadoId, String mes, BigDecimal total, Integer version) {

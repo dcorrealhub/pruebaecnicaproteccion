@@ -1,20 +1,6 @@
 import { useState } from 'react'
 import { registrarAporte } from '../api/aportesApi'
 
-/**
- * TODO (candidato): implementar el formulario de registro de aporte.
- *
- * Campos requeridos:
- *   - afiliadoId (texto, sintético — ej: "AF-001")
- *   - monto (número, positivo)
- *   - canal (selector: APP_MOVIL, WEB, SUCURSAL)
- *   - idempotenciaKey: generar automáticamente con crypto.randomUUID()
- *
- * Comportamiento esperado:
- *   - Validar monto > 0 antes de enviar
- *   - Mostrar mensaje de éxito o error según la respuesta
- *   - Si el aporte queda marcado para revisión, indicarlo claramente
- */
 export default function RegistrarAporte() {
   const [form, setForm] = useState({ afiliadoId: '', monto: '', canal: 'APP_MOVIL' })
   const [resultado, setResultado] = useState(null)
@@ -23,18 +9,15 @@ export default function RegistrarAporte() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setError(null)
-    setResultado(null)
-    setCargando(true)
-
+    setError(null); setResultado(null); setCargando(true)
     try {
-      // TODO: completar la llamada, incluir idempotenciaKey
       const data = await registrarAporte({
         ...form,
         monto: parseFloat(form.monto),
         idempotenciaKey: crypto.randomUUID(),
       })
       setResultado(data)
+      setForm({ afiliadoId: '', monto: '', canal: 'APP_MOVIL' })
     } catch (err) {
       setError(err.message)
     } finally {
@@ -43,64 +26,111 @@ export default function RegistrarAporte() {
   }
 
   return (
-    <div>
-      <h2 style={{ fontSize: 18, marginBottom: 16 }}>Registrar aporte</h2>
+    <div style={s.card}>
+      <form onSubmit={handleSubmit}>
+        <div style={s.grid}>
+          <Field label="ID Afiliado" hint="Ej: AF-001">
+            <input style={s.input}
+              value={form.afiliadoId}
+              onChange={e => setForm(f => ({ ...f, afiliadoId: e.target.value }))}
+              placeholder="AF-001" required />
+          </Field>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 400 }}>
-        <label>
-          ID Afiliado (sintético)
-          <input
-            value={form.afiliadoId}
-            onChange={e => setForm(f => ({ ...f, afiliadoId: e.target.value }))}
-            placeholder="AF-001"
-            required
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
-          />
-        </label>
+          <Field label="Monto (COP)" hint="Debe ser mayor a $0">
+            <input style={s.input} type="number" min="0.01" step="0.01"
+              value={form.monto}
+              onChange={e => setForm(f => ({ ...f, monto: e.target.value }))}
+              placeholder="0.00" required />
+          </Field>
 
-        <label>
-          Monto (COP)
-          <input
-            type="number"
-            min="0.01"
-            step="0.01"
-            value={form.monto}
-            onChange={e => setForm(f => ({ ...f, monto: e.target.value }))}
-            required
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
-          />
-        </label>
+          <Field label="Canal de origen">
+            <select style={s.input} value={form.canal}
+              onChange={e => setForm(f => ({ ...f, canal: e.target.value }))}>
+              <option value="APP_MOVIL">App Móvil</option>
+              <option value="WEB">Web</option>
+              <option value="SUCURSAL">Sucursal</option>
+            </select>
+          </Field>
+        </div>
 
-        <label>
-          Canal
-          <select
-            value={form.canal}
-            onChange={e => setForm(f => ({ ...f, canal: e.target.value }))}
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
-          >
-            <option value="APP_MOVIL">App móvil</option>
-            <option value="WEB">Web</option>
-            <option value="SUCURSAL">Sucursal</option>
-          </select>
-        </label>
-
-        <button type="submit" disabled={cargando}>
-          {cargando ? 'Registrando...' : 'Registrar'}
-        </button>
+        <div style={{ marginTop: 24 }}>
+          <button type="submit" disabled={cargando} style={{
+            ...s.btn,
+            ...(cargando ? s.btnDisabled : {}),
+          }}>
+            {cargando ? 'Registrando...' : 'Registrar aporte'}
+          </button>
+        </div>
       </form>
 
       {error && (
-        <p style={{ color: 'red', marginTop: 16 }}>Error: {error}</p>
+        <div style={s.alertError}>
+          <strong>Error:</strong> {error}
+        </div>
       )}
 
       {resultado && (
-        <div style={{ marginTop: 16, padding: 12, background: '#f0f0f0' }}>
-          <p>Aporte registrado. ID: {resultado.id}</p>
+        <div style={s.alertSuccess}>
+          <div style={{ fontWeight: 600 }}>Aporte registrado — ID #{resultado.id}</div>
+          <div style={{ fontSize: 13, marginTop: 4, color: '#374151' }}>
+            {resultado.monto?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+            {' · '}{resultado.canal}{' · '}{resultado.fecha}
+          </div>
           {resultado.marcadaRevision && (
-            <p style={{ color: 'orange' }}>Este aporte quedó marcado para revisión.</p>
+            <div style={s.badge}>⚠ Marcado para revisión</div>
           )}
         </div>
       )}
     </div>
   )
+}
+
+function Field({ label, hint, children }) {
+  return (
+    <div>
+      <label style={s.label}>{label}</label>
+      {hint && <span style={s.hint}>{hint}</span>}
+      {children}
+    </div>
+  )
+}
+
+const s = {
+  card: {
+    background: '#fff', borderRadius: 10,
+    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+    padding: 28, maxWidth: 560,
+  },
+  grid: { display: 'grid', gap: 20 },
+  label: { display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 2 },
+  hint:  { display: 'block', fontSize: 12, color: '#9CA3AF', marginBottom: 6 },
+  input: {
+    width: '100%', padding: '9px 12px',
+    border: '1.5px solid #D1D5DB', borderRadius: 6,
+    fontSize: 14, color: '#111827',
+    outline: 'none', boxSizing: 'border-box',
+    transition: 'border-color 0.15s',
+  },
+  btn: {
+    padding: '10px 24px', background: '#6CB531',
+    color: '#fff', border: 'none', borderRadius: 6,
+    fontSize: 14, fontWeight: 600, cursor: 'pointer',
+  },
+  btnDisabled: { background: '#B1B1B1', cursor: 'not-allowed' },
+  alertError: {
+    marginTop: 20, padding: '12px 16px',
+    background: '#FEF2F2', border: '1px solid #FECACA',
+    borderRadius: 6, color: '#B91C1C', fontSize: 14,
+  },
+  alertSuccess: {
+    marginTop: 20, padding: '12px 16px',
+    background: '#F0FDF4', border: '1px solid #BBF7D0',
+    borderRadius: 6, fontSize: 14,
+  },
+  badge: {
+    display: 'inline-block', marginTop: 8,
+    padding: '3px 10px', background: '#FEF3C7',
+    color: '#92400E', borderRadius: 20,
+    fontSize: 12, fontWeight: 600,
+  },
 }

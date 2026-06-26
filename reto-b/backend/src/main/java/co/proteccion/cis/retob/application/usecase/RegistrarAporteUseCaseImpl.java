@@ -1,42 +1,77 @@
 package co.proteccion.cis.retob.application.usecase;
 
+import co.proteccion.cis.retob.config.AporteProperties;
 import co.proteccion.cis.retob.domain.model.Aporte;
+import co.proteccion.cis.retob.domain.model.ReglaNegocioException;
+import co.proteccion.cis.retob.domain.model.SaldoMensual;
 import co.proteccion.cis.retob.domain.port.in.RegistrarAporteUseCase;
 import co.proteccion.cis.retob.domain.port.out.AporteRepositoryPort;
 import co.proteccion.cis.retob.domain.port.out.SaldoRepositoryPort;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
-/**
- * Implementación del caso de uso de registro de aportes.
- *
- * TODO (candidato): implementar la lógica de negocio:
- *   1. Verificar idempotencia: si ya existe un aporte con la misma idempotenciaKey, retornarlo.
- *   2. Validar monto positivo y que no supere el tope mensual del afiliado.
- *   3. Marcar para revisión si el monto supera {@code umbralRevision}.
- *   4. Actualizar el saldo mensual del afiliado de forma concurrentemente segura.
- *   5. Persistir el aporte y publicar el evento correspondiente.
- *   6. Envolver todo en una transacción (@Transactional).
- */
 @Service
 @RequiredArgsConstructor
 public class RegistrarAporteUseCaseImpl implements RegistrarAporteUseCase {
 
     private final AporteRepositoryPort aporteRepository;
-    private final SaldoRepositoryPort saldoRepository;
-
-    @Value("${aporte.tope-mensual:10000000}")
-    private BigDecimal topeMensual;
-
-    @Value("${aporte.umbral-revision:5000000}")
-    private BigDecimal umbralRevision;
+    private final SaldoRepositoryPort  saldoRepository;
+    private final AporteProperties     properties;
 
     @Override
+    @Transactional
     public Aporte registrar(RegistrarAporteCommand command) {
-        // TODO: implementar
-        throw new UnsupportedOperationException("Pendiente de implementación");
+
+        // 1. Idempotencia — reintento seguro
+        return aporteRepository.findByIdempotenciaKey(command.idempotenciaKey())
+                .orElseGet(() -> crearNuevo(command));
+    }
+
+    private Aporte crearNuevo(RegistrarAporteCommand command) {
+
+        // 2. Validar monto positivo
+        if (command.monto() == null || command.monto().signum() <= 0) {
+            throw new ReglaNegocioException("El monto debe ser mayor a cero");
+        }
+
+        LocalDate hoy = LocalDate.now();
+        String mes = hoy.format(DateTimeFormatter.ofPattern("yyyy-MM"));
+
+        // 3. Obtener o inicializar saldo mensual
+        SaldoMensual saldo = saldoRepository
+                .findByAfiliadoIdAndMes(command.afiliadoId(), mes)
+                .orElseGet(() -> saldoRepository.inicializar(command.afiliadoId(), mes));
+
+        // 4. Validar tope mensual
+        var nuevoTotal = saldo.calcularNuevoTotal(command.monto());
+        if (nuevoTotal.compareTo(properties.topeMensual()) > 0) {
+            throw new ReglaNegocioException(
+                    "Supera el tope mensual permitido de " + properties.topeMensual()
+            );
+        }
+
+        // 5. Marcar para revisión si supera umbral
+        boolean requiereRevision = command.monto()
+                .compareTo(properties.umbralRevision()) > 0;
+
+        // 6. Persistir aporte
+        Aporte nuevo = Aporte.nuevo(
+                command.afiliadoId(),
+                command.monto(),
+                hoy,
+                command.canal(),
+                requiereRevision,
+                command.idempotenciaKey()
+        );
+        Aporte persistido = aporteRepository.guardar(nuevo);
+
+        // 7. Actualizar saldo mensual
+        saldoRepository.guardar(saldo.conTotal(nuevoTotal));
+
+        return persistido;
     }
 }
