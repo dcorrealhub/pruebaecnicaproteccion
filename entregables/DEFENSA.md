@@ -100,3 +100,5 @@ Lo mismo que en el Reto A aplica acá — las conversaciones con negocio y el ar
 - **Logs de auditoría:** Cada login exitoso, cada intento fallido, cada aporte registrado debería quedar en un log de auditoría inmutable. En un entorno SFC esto es un requerimiento regulatorio, no opcional.
 
 - **Pruebas de integración y contrato:** Los tests actuales son unitarios. Falta cobertura del flujo completo: autenticación → registro de aporte → consulta de consolidado, incluyendo los casos de borde (tope excedido, periodo futuro, clave duplicada).
+
+- **SonarQube y cobertura mínima definida:** Integrar SonarQube al pipeline de CI con un quality gate que bloquee merges si no se cumple el umbral de cobertura acordado por el equipo. El umbral mínimo no lo define el desarrollador — lo define el equipo junto con el área de calidad, con referencia estándar en 80% para módulos críticos. Sin esto, la cobertura es un número que nadie vigila.
