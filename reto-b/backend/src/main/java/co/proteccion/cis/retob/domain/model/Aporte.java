@@ -3,28 +3,24 @@ package co.proteccion.cis.retob.domain.model;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-/**
- * Entidad de dominio: representa un aporte a un fondo voluntario.
- * Clase pura de Java — sin anotaciones de framework ni de persistencia.
- */
 public final class Aporte {
 
     private final Long id;
     private final String afiliadoId;
     private final BigDecimal monto;
     private final LocalDate fecha;
-    private final String canal;
+    private final CanalOrigen canal;
     private final String periodo;        // formato YYYY-MM
-    private final boolean marcadaRevision;
+    private final EstadoAporte estado;
     private final String idempotenciaKey;
 
     public Aporte(Long id,
                   String afiliadoId,
                   BigDecimal monto,
                   LocalDate fecha,
-                  String canal,
+                  CanalOrigen canal,
                   String periodo,
-                  boolean marcadaRevision,
+                  EstadoAporte estado,
                   String idempotenciaKey) {
         this.id = id;
         this.afiliadoId = afiliadoId;
@@ -32,16 +28,16 @@ public final class Aporte {
         this.fecha = fecha;
         this.canal = canal;
         this.periodo = periodo;
-        this.marcadaRevision = marcadaRevision;
+        this.estado = estado;
         this.idempotenciaKey = idempotenciaKey;
     }
 
-    public Long getId()              { return id; }
-    public String getAfiliadoId()    { return afiliadoId; }
-    public BigDecimal getMonto()     { return monto; }
-    public LocalDate getFecha()      { return fecha; }
-    public String getCanal()         { return canal; }
-    public String getPeriodo()       { return periodo; }
-    public boolean isMarcadaRevision() { return marcadaRevision; }
-    public String getIdempotenciaKey() { return idempotenciaKey; }
+    public Long getId()                  { return id; }
+    public String getAfiliadoId()        { return afiliadoId; }
+    public BigDecimal getMonto()         { return monto; }
+    public LocalDate getFecha()          { return fecha; }
+    public CanalOrigen getCanal()        { return canal; }
+    public String getPeriodo()           { return periodo; }
+    public EstadoAporte getEstado()      { return estado; }
+    public String getIdempotenciaKey()   { return idempotenciaKey; }
 }

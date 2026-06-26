@@ -1,6 +1,7 @@
 package co.proteccion.cis.retob.domain.port.in;
 
 import co.proteccion.cis.retob.domain.model.Aporte;
+import co.proteccion.cis.retob.domain.model.CanalOrigen;
 
 import java.math.BigDecimal;
 
@@ -24,7 +25,7 @@ public interface RegistrarAporteUseCase {
     record RegistrarAporteCommand(
             String afiliadoId,
             BigDecimal monto,
-            String canal,
+            CanalOrigen canal,
             String idempotenciaKey
     ) {}
 }
