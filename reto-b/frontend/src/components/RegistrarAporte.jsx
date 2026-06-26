@@ -116,7 +116,7 @@ export default function RegistrarAporte() {
 
       {resultado && (
         <div style={{ marginTop: 16, padding: 12, background: '#f0f0f0' }}>
-          <p>Aporte registrado. ID: <strong>{resultado.id}</strong> — Estado: <strong>{resultado.estado}</strong></p>
+          <p>Aporte registrado. Estado: <strong>{resultado.estado}</strong></p>
           {resultado.marcadaRevision && (
             <p style={{ color: '#b8860b' }}>
               Superó el umbral: quedó <strong>marcado para revisión</strong>. Ya reserva cupo del tope mensual y queda pendiente de aprobación.
