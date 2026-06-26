@@ -31,17 +31,24 @@ revisión posterior. Aportes que violen las reglas se rechazan con un mensaje cl
  
 usa mis skills locales para generar un plan completo.
  
-## 3. Desviaciones respecto del scaffold (intencionales)
+## 4. Desviaciones respecto del scaffold (intencionales)
 
 1. **Parámetros en BD** en lugar de `@Value` sobre `application.properties`
    (migración `V2`, puerto `ParametroAportePort` + adaptador).
+
+De esta manera se pueden cambiar los parametros en tiempo de ejecución, es mucho mas util en un entorno de producción.
+
 2. **Estados de aporte** (`EstadoAporte`: `APROBADO` / `PENDIENTE_REVISION` / `RECHAZADO`)
    y **flujo de aprobación** (`AprobarAporteUseCase` + endpoints `/{id}/aprobar` y
    `/{id}/rechazar`). Bajo el modelo de reserva, el pendiente ya descontó cupo: aprobar
    no toca el saldo y rechazar lo libera. El booleano `marcada_revision` se conserva pero
    se **deriva** del estado.
 
-## 4. Reglas de negocio
+Este manejo de estados permite tener un flujo de aprobación más claro y controlado, asegurando que los aportes sean revisados adecuadamente antes de ser aprobados o rechazados.
+
+## 5. Reglas de negocio
+
+Se mantienen las reglas descritas en el ejercicio solicitado, con las siguientes precisiones:
 
 - Monto debe ser positivo → validado en el DTO (`@DecimalMin`) **y** en el dominio
   (`Aporte.nuevo`), defensa en profundidad.
@@ -51,12 +58,14 @@ usa mis skills locales para generar un plan completo.
 - Consolidado: `totalAportado` = suma de aprobados; `totalEnRevision` aparte; el detalle
   incluye todos con su estado.
 
-## 5. Manejo de errores (HTTP)
+## 6. Manejo de errores (HTTP)
+
+El manejo de errores centralizado permite que la API devuelva respuestas uniformes y claras ante diferentes tipos de errores.
 
 `GlobalExceptionHandler` traduce: validación → **400**, regla de negocio (tope/transición)
 → **422**, aporte inexistente → **404**, inesperado → **500**. Cuerpo uniforme `ErrorResponse`.
 
-## 6. Pruebas (32 en total, todas verdes)
+## 7. Pruebas (32 en total, todas verdes)
 
 - **Dominio (unitarias)**: invariantes de `Aporte` (monto positivo, periodo derivado,
   transiciones válidas/ inválidas) y de `ParametrosAporte` (positivos, umbral ≤ tope).
@@ -73,14 +82,6 @@ Qué quedó **deliberadamente fuera** por alcance: autenticación/autorización,
 del detalle, e idempotencia con expiración/TTL de claves. Se documentan como límites
 conscientes, no como olvidos.
 
-## 7. Cómo ejecutar
-
-```bash
-docker compose up -d                 # PostgreSQL en localhost:5432
-cd reto-b/backend && mvn spring-boot:run    # API en :8082 (Flyway aplica V1+V2)
-cd reto-b/frontend && npm install && npm run dev   # UI en :5173 (proxy /api → :8082)
-mvn test                             # 32 pruebas
-```
 
 ## 8. Uso de IA
 
