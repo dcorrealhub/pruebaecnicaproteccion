@@ -288,6 +288,55 @@ button, input, select {
   opacity: 0.7;
 }
 
+.btn-success {
+  background: var(--color-success);
+  color: #ffffff;
+}
+.btn-success:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+.btn-success:disabled { background: #94a3b8; cursor: not-allowed; opacity: 0.7; }
+
+.btn-danger {
+  background: var(--color-error);
+  color: #ffffff;
+}
+.btn-danger:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+.btn-danger:disabled { background: #94a3b8; cursor: not-allowed; opacity: 0.7; }
+
+.btn-warning {
+  background: var(--color-warning);
+  color: #ffffff;
+}
+.btn-warning:hover:not(:disabled) {
+  background: #ea6c00;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+}
+.btn-warning:disabled { background: #94a3b8; cursor: not-allowed; opacity: 0.7; }
+
+.btn-sm {
+  padding: 0.35rem 0.85rem;
+  font-size: 0.8rem;
+  width: auto;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--primary-brand);
+  border: 1.5px solid var(--primary-brand);
+  box-shadow: none;
+}
+.btn-outline:hover:not(:disabled) {
+  background: rgba(2, 132, 199, 0.08);
+}
+
 /* Stats / Dashboard Panel */
 .stats-panel {
   display: flex;

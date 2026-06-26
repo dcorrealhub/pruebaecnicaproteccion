@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import RegistrarAporte from './components/RegistrarAporte'
 import ConsolidadoAportes from './components/ConsolidadoAportes'
+import GestionAportes from './components/GestionAportes'
 
 export default function App() {
   const [vistaActiva, setVistaActiva] = useState('registrar')
@@ -30,6 +31,12 @@ export default function App() {
             className={`nav-btn ${vistaActiva === 'consolidado' ? 'active' : ''}`}
           >
             Consolidado de Aportes
+          </button>
+          <button
+            onClick={() => setVistaActiva('gestion')}
+            className={`nav-btn ${vistaActiva === 'gestion' ? 'active' : ''}`}
+          >
+            Gestión de Revisiones
           </button>
         </nav>
       </header>
@@ -79,7 +86,9 @@ export default function App() {
 
         {/* Dynamic Workspace Container */}
         <section className="fade-in">
-          {vistaActiva === 'registrar' ? <RegistrarAporte /> : <ConsolidadoAportes />}
+          {vistaActiva === 'registrar'  && <RegistrarAporte />}
+          {vistaActiva === 'consolidado' && <ConsolidadoAportes />}
+          {vistaActiva === 'gestion'     && <GestionAportes />}
         </section>
       </main>
     </div>
