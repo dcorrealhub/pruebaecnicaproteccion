@@ -1,25 +1,75 @@
 import { useState } from 'react'
 import { registrarAporte } from '../api/aportesApi'
+import Modal from './Modal'
 
 export default function RegistrarAporte() {
   const [form, setForm] = useState({ afiliadoId: '', monto: '', canal: 'APP_MOVIL' })
-  const [resultado, setResultado] = useState(null)
-  const [error, setError] = useState(null)
+  const [modal, setModal] = useState(null)
   const [cargando, setCargando] = useState(false)
+  const [idempotenciaKey, setIdempotenciaKey] = useState(() => crypto.randomUUID())
+
+  function cerrarModal() { setModal(null) }
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setError(null); setResultado(null); setCargando(true)
+
+    if (!form.afiliadoId.trim()) {
+      setModal({ tipo: 'warning', titulo: 'Campo requerido', contenido: 'El ID del afiliado es obligatorio.' })
+      return
+    }
+    const montoNum = parseFloat(form.monto.replace(/\./g, '').replace(',', '.'))
+    if (!form.monto || isNaN(montoNum) || montoNum <= 0) {
+      setModal({ tipo: 'warning', titulo: 'Monto inválido', contenido: 'El monto debe ser un número mayor a cero.' })
+      return
+    }
+
+    setCargando(true)
     try {
       const data = await registrarAporte({
-        ...form,
-        monto: parseFloat(form.monto),
-        idempotenciaKey: crypto.randomUUID(),
+        afiliadoId: form.afiliadoId.trim().replace(/\s*-\s*/g, '-'),
+        monto: montoNum,
+        canal: form.canal,
+        idempotenciaKey,
       })
-      setResultado(data)
+
+      setModal({
+        tipo: 'success',
+        titulo: 'Aporte registrado',
+        contenido: (
+          <div>
+            <p style={{ margin: '0 0 8px' }}><strong>ID:</strong> #{data.id}</p>
+            <p style={{ margin: '0 0 8px' }}><strong>Afiliado:</strong> {data.afiliadoId}</p>
+            <p style={{ margin: '0 0 8px' }}>
+              <strong>Monto:</strong>{' '}
+              {data.monto?.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })}
+            </p>
+            <p style={{ margin: '0 0 8px' }}><strong>Canal:</strong> {data.canal}</p>
+            <p style={{ margin: 0 }}><strong>Fecha:</strong> {data.fecha}</p>
+            {data.marcadaRevision && (
+              <div style={{
+                marginTop: 14, padding: '8px 12px',
+                background: '#FFFBEB', borderRadius: 6,
+                border: '1px solid #FDE68A',
+                color: '#92400E', fontSize: 13, fontWeight: 600,
+              }}>
+                ⚠ Este aporte quedó marcado para revisión posterior.
+              </div>
+            )}
+          </div>
+        ),
+      })
+
+      // Éxito — limpiar form y generar nueva key para el próximo aporte
       setForm({ afiliadoId: '', monto: '', canal: 'APP_MOVIL' })
+      setIdempotenciaKey(crypto.randomUUID())
+
     } catch (err) {
-      setError(err.message)
+      // Error — mantener la misma key para que el usuario pueda reintentar de forma segura
+      setModal({
+        tipo: 'error',
+        titulo: 'Error al registrar',
+        contenido: err.message || 'Ocurrió un error inesperado. Intentá de nuevo.',
+      })
     } finally {
       setCargando(false)
     }
@@ -33,14 +83,17 @@ export default function RegistrarAporte() {
             <input style={s.input}
               value={form.afiliadoId}
               onChange={e => setForm(f => ({ ...f, afiliadoId: e.target.value }))}
-              placeholder="AF-001" required />
+              placeholder="AF-001" />
           </Field>
 
-          <Field label="Monto (COP)" hint="Debe ser mayor a $0">
-            <input style={s.input} type="number" min="0.01" step="0.01"
+          <Field label="Monto (COP)" hint="Ej: 3500000">
+            <input style={s.input} type="text"
               value={form.monto}
-              onChange={e => setForm(f => ({ ...f, monto: e.target.value }))}
-              placeholder="0.00" required />
+              onChange={e => {
+                const raw = e.target.value.replace(/[^\d]/g, '')
+                setForm(f => ({ ...f, monto: raw }))
+              }}
+              placeholder="3500000" />
           </Field>
 
           <Field label="Canal de origen">
@@ -54,32 +107,19 @@ export default function RegistrarAporte() {
         </div>
 
         <div style={{ marginTop: 24 }}>
-          <button type="submit" disabled={cargando} style={{
-            ...s.btn,
-            ...(cargando ? s.btnDisabled : {}),
-          }}>
+          <button type="submit" disabled={cargando}
+            style={{ ...s.btn, ...(cargando ? s.btnDisabled : {}) }}>
             {cargando ? 'Registrando...' : 'Registrar aporte'}
           </button>
         </div>
       </form>
 
-      {error && (
-        <div style={s.alertError}>
-          <strong>Error:</strong> {error}
-        </div>
-      )}
-
-      {resultado && (
-        <div style={s.alertSuccess}>
-          <div style={{ fontWeight: 600 }}>Aporte registrado — ID #{resultado.id}</div>
-          <div style={{ fontSize: 13, marginTop: 4, color: '#374151' }}>
-            {resultado.monto?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
-            {' · '}{resultado.canal}{' · '}{resultado.fecha}
-          </div>
-          {resultado.marcadaRevision && (
-            <div style={s.badge}>⚠ Marcado para revisión</div>
-          )}
-        </div>
+      {modal && (
+        <Modal tipo={modal.tipo} titulo={modal.titulo} onClose={cerrarModal}>
+          {typeof modal.contenido === 'string'
+            ? <p style={{ margin: 0 }}>{modal.contenido}</p>
+            : modal.contenido}
+        </Modal>
       )}
     </div>
   )
@@ -107,9 +147,8 @@ const s = {
   input: {
     width: '100%', padding: '9px 12px',
     border: '1.5px solid #D1D5DB', borderRadius: 6,
-    fontSize: 14, color: '#111827',
-    outline: 'none', boxSizing: 'border-box',
-    transition: 'border-color 0.15s',
+    fontSize: 14, color: '#111827', outline: 'none',
+    boxSizing: 'border-box',
   },
   btn: {
     padding: '10px 24px', background: '#6CB531',
@@ -117,20 +156,4 @@ const s = {
     fontSize: 14, fontWeight: 600, cursor: 'pointer',
   },
   btnDisabled: { background: '#B1B1B1', cursor: 'not-allowed' },
-  alertError: {
-    marginTop: 20, padding: '12px 16px',
-    background: '#FEF2F2', border: '1px solid #FECACA',
-    borderRadius: 6, color: '#B91C1C', fontSize: 14,
-  },
-  alertSuccess: {
-    marginTop: 20, padding: '12px 16px',
-    background: '#F0FDF4', border: '1px solid #BBF7D0',
-    borderRadius: 6, fontSize: 14,
-  },
-  badge: {
-    display: 'inline-block', marginTop: 8,
-    padding: '3px 10px', background: '#FEF3C7',
-    color: '#92400E', borderRadius: 20,
-    fontSize: 12, fontWeight: 600,
-  },
 }

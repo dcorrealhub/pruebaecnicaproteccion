@@ -79,3 +79,5 @@ Checklist final para mantener consistencia visual.
 
 No me des una explicación genérica. Quiero una propuesta accionable, concreta, lista para implementar en React. Si detectas contradicciones entre modernidad y marca, resuélvelas con criterio de diseño y explícame la decisión.
 
+Cuando la IA me entregó su respuesta para generar el frontend me di cuenta de que la solución inicial no tenía en cuenta la normalización de los datos que ingresaba el usuario. Le expliqué a la IA que el ID del afiliado debía tratarse como un identificador único, sin importar si el usuario escribía AF-002, AF - 002 o AF- 002. Mi criterio fue que esos formatos representan el mismo afiliado y no tenía sentido que el sistema los interpretara como valores diferentes. Por eso decidí normalizar el dato desde el frontend utilizando .replace(/\s*-\s*/g, '-'), de manera que todas las consultas y registros se enviaran con el mismo formato y se evitaran errores por diferencias únicamente de escritura.
+

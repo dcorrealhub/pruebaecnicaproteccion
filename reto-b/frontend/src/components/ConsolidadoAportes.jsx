@@ -1,20 +1,45 @@
 import { useState } from 'react'
 import { consultarConsolidado } from '../api/aportesApi'
+import Modal from './Modal'
 
 export default function ConsolidadoAportes() {
   const [filtros, setFiltros] = useState({ afiliadoId: '', periodoDesde: '', periodoHasta: '' })
   const [consolidado, setConsolidado] = useState(null)
-  const [error, setError] = useState(null)
+  const [modal, setModal] = useState(null)
   const [cargando, setCargando] = useState(false)
+
+  function cerrarModal() { setModal(null) }
 
   async function handleBuscar(e) {
     e.preventDefault()
-    setError(null); setConsolidado(null); setCargando(true)
+
+    if (!filtros.afiliadoId.trim()) {
+      setModal({ tipo: 'warning', titulo: 'Campo requerido', contenido: 'El ID del afiliado es obligatorio.' })
+      return
+    }
+    if (!filtros.periodoDesde || !filtros.periodoHasta) {
+      setModal({ tipo: 'warning', titulo: 'Campos requeridos', contenido: 'Los periodos desde y hasta son obligatorios.' })
+      return
+    }
+    if (filtros.periodoDesde > filtros.periodoHasta) {
+      setModal({ tipo: 'warning', titulo: 'Rango inválido', contenido: 'El periodo desde no puede ser mayor al periodo hasta.' })
+      return
+    }
+
+    setConsolidado(null)
+    setCargando(true)
     try {
-      const data = await consultarConsolidado(filtros)
+      const data = await consultarConsolidado({
+        ...filtros,
+        afiliadoId: filtros.afiliadoId.trim().replace(/\s*-\s*/g, '-'),
+    })
       setConsolidado(data)
     } catch (err) {
-      setError(err.message)
+      setModal({
+        tipo: 'error',
+        titulo: 'Error en la consulta',
+        contenido: err.message || 'No se pudo obtener el consolidado.',
+      })
     } finally {
       setCargando(false)
     }
@@ -32,7 +57,7 @@ export default function ConsolidadoAportes() {
               <input style={s.input}
                 value={filtros.afiliadoId}
                 onChange={e => setFiltros(f => ({ ...f, afiliadoId: e.target.value }))}
-                placeholder="AF-001" required />
+                placeholder="AF-001" />
             </Field>
 
             <Field label="Periodo desde" hint="Formato YYYY-MM">
@@ -40,7 +65,7 @@ export default function ConsolidadoAportes() {
                 value={filtros.periodoDesde}
                 onChange={e => setFiltros(f => ({ ...f, periodoDesde: e.target.value }))}
                 placeholder="2026-01"
-                pattern="\d{4}-\d{2}" required />
+                pattern="\d{4}-\d{2}" />
             </Field>
 
             <Field label="Periodo hasta" hint="Formato YYYY-MM">
@@ -48,27 +73,18 @@ export default function ConsolidadoAportes() {
                 value={filtros.periodoHasta}
                 onChange={e => setFiltros(f => ({ ...f, periodoHasta: e.target.value }))}
                 placeholder="2026-06"
-                pattern="\d{4}-\d{2}" required />
+                pattern="\d{4}-\d{2}" />
             </Field>
           </div>
 
           <div style={{ marginTop: 24 }}>
-            <button type="submit" disabled={cargando} style={{
-              ...s.btn,
-              ...(cargando ? s.btnDisabled : {}),
-            }}>
+            <button type="submit" disabled={cargando}
+              style={{ ...s.btn, ...(cargando ? s.btnDisabled : {}) }}>
               {cargando ? 'Consultando...' : 'Consultar consolidado'}
             </button>
           </div>
         </form>
       </div>
-
-      {/* Error */}
-      {error && (
-        <div style={s.alertError}>
-          <strong>Error:</strong> {error}
-        </div>
-      )}
 
       {/* Resultados */}
       {consolidado && (
@@ -105,8 +121,7 @@ export default function ConsolidadoAportes() {
                 </thead>
                 <tbody>
                   {consolidado.detalle.map((a, i) => (
-                    <tr key={a.id}
-                      style={{ background: i % 2 === 0 ? '#FFFFFF' : '#F9FAFB' }}>
+                    <tr key={a.id} style={{ background: i % 2 === 0 ? '#FFFFFF' : '#F9FAFB' }}>
                       <td style={s.td}>{a.fecha}</td>
                       <td style={{ ...s.td, fontWeight: 600 }}>
                         {a.monto?.toLocaleString('es-CO', {
@@ -139,6 +154,13 @@ export default function ConsolidadoAportes() {
           )}
         </div>
       )}
+
+      {/* Modal */}
+      {modal && (
+        <Modal tipo={modal.tipo} titulo={modal.titulo} onClose={cerrarModal}>
+          <p style={{ margin: 0 }}>{modal.contenido}</p>
+        </Modal>
+      )}
     </div>
   )
 }
@@ -159,9 +181,9 @@ const s = {
     boxShadow: '0 1px 3px rgba(0,0,0,0.08)', padding: 28,
   },
   cardTitle: {
-    fontSize: 13, fontWeight: 600,
-    color: '#6B7280', textTransform: 'uppercase',
-    letterSpacing: 1, marginBottom: 20, marginTop: 0,
+    fontSize: 13, fontWeight: 600, color: '#6B7280',
+    textTransform: 'uppercase', letterSpacing: 1,
+    marginBottom: 20, marginTop: 0,
   },
   grid: {
     display: 'grid',
@@ -182,11 +204,6 @@ const s = {
     fontSize: 14, fontWeight: 600, cursor: 'pointer',
   },
   btnDisabled: { background: '#B1B1B1', cursor: 'not-allowed' },
-  alertError: {
-    padding: '12px 16px', background: '#FEF2F2',
-    border: '1px solid #FECACA', borderRadius: 6,
-    color: '#B91C1C', fontSize: 14,
-  },
   totalBox: {
     display: 'flex', justifyContent: 'space-between',
     alignItems: 'flex-start', flexWrap: 'wrap', gap: 12,
@@ -227,9 +244,7 @@ const s = {
     color: '#166534', borderRadius: 4,
     fontSize: 12, fontWeight: 600,
   },
-  emptyState: {
-    textAlign: 'center', padding: '48px 24px',
-  },
+  emptyState: { textAlign: 'center', padding: '48px 24px' },
   emptyIcon:  { fontSize: 36, color: '#D1D5DB', margin: '0 0 12px' },
   emptyTitle: { fontSize: 16, fontWeight: 600, color: '#374151', margin: '0 0 8px' },
   emptyText:  { fontSize: 14, color: '#6B7280', margin: 0 },
