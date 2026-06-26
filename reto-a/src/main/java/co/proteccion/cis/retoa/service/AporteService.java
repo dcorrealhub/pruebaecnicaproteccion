@@ -7,6 +7,9 @@ import co.proteccion.cis.retoa.dto.AporteRequest;
 import co.proteccion.cis.retoa.repository.AporteJpaRepository;
 import co.proteccion.cis.retoa.repository.EventoAporteJpaRepository;
 import co.proteccion.cis.retoa.repository.SaldoJpaRepository;
+import co.proteccion.cis.retoa.exception.AfiliadoNotFoundException;
+import co.proteccion.cis.retoa.exception.AporteDuplicadoException;
+import co.proteccion.cis.retoa.exception.TopeMensualExcedidoException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,8 +41,7 @@ public class AporteService {
     public Aporte registrar(AporteRequest req) {
         // Hallazgo N° 5: rechazar antes de cualquier operacion si la llave ya fue usada
         if (aporteRepo.existsByIdempotencyKey(req.getIdempotencyKey())) {
-            throw new IllegalStateException(
-                "Aporte duplicado: llave de idempotencia ya utilizada");
+            throw new AporteDuplicadoException();
         }
 
         BigDecimal topeMensual    = new BigDecimal(topeMensualStr);
@@ -51,14 +53,13 @@ public class AporteService {
         }
 
         // Hallazgo N° 3: locking pesimista serializa el acceso al saldo bajo concurrencia
-        // Hallazgo N° 9: mensaje genérico — no exponer afiliadoId al cliente
         Saldo s = saldoRepo.findByAfiliadoIdForUpdate(req.getAfiliadoId())
-                .orElseThrow(() -> new IllegalArgumentException("Afiliado no encontrado"));
+                .orElseThrow(AfiliadoNotFoundException::new);
 
         // Hallazgo N° 4 corregido: compareTo() > 0 en lugar de == topeMensual
         BigDecimal nuevo = s.getTotalMes().add(monto);
         if (nuevo.compareTo(topeMensual) > 0) {
-            throw new IllegalArgumentException("El monto supera el tope mensual permitido");
+            throw new TopeMensualExcedidoException();
         }
 
         s.setTotalMes(nuevo);

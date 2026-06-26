@@ -49,10 +49,16 @@ Estado del proceso de corrección de los hallazgos **Críticos** y **Altos** ide
 > **Commit 1:** `fix(reto-a): implementar transaccionalidad y locking pesimista contra condiciones de carrera`
 > **Commit 2:** `feat(reto-a): agregar llave de idempotencia en registro de aportes`
 
-### Fase 4 — Arquitectura y Calidad *(Hallazgos N° 12, 13, 14, 15)*
-- [ ] **[refactor]** Crear jerarquía de excepciones de dominio + `@RestControllerAdvice` *(Hallazgo N° 12 — Medio)*
-- [ ] **[fix]** Mover consola H2 a perfil `dev` únicamente *(Hallazgo N° 13 — Medio)*
-- [ ] **[test]** Agregar `@Transactional` a `AporteServiceTest` para aislar estado entre tests *(Hallazgo N° 15 — Bajo)*
+### Fase 4 — Arquitectura y Calidad *(Hallazgos N° 12, 13, 15)*
+- [x] **[refactor]** Crear paquete `exception` con `AfiliadoNotFoundException`, `TopeMensualExcedidoException`, `AporteDuplicadoException` + `GlobalExceptionHandler` (`@RestControllerAdvice`) mapeando HTTP 404/422/409 *(Hallazgo N° 12 — Medio)*
+- [x] **[fix]** `spring.h2.console.enabled=false` en `application.properties` base; consola activa solo en `application-dev.properties` con `--spring.profiles.active=dev` *(Hallazgo N° 13 — Medio)*
+- [x] **[test]** `@Transactional` en `AporteServiceTest` aísla el estado de H2 entre tests (completado en Fase 1 al tocar el archivo) *(Hallazgo N° 15 — Bajo)*
+
+> **Commit:** `refactor(reto-a): implementar controller advice para excepciones de dominio y aislar consola h2`
+
+---
+
+## Estado final: 15/15 hallazgos resueltos ✓
 
 ---
 

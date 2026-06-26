@@ -2,6 +2,7 @@ package co.proteccion.cis.retoa;
 
 import co.proteccion.cis.retoa.dto.AporteRequest;
 import co.proteccion.cis.retoa.domain.Aporte;
+import co.proteccion.cis.retoa.exception.AfiliadoNotFoundException;
 import co.proteccion.cis.retoa.service.AporteService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +56,6 @@ class AporteServiceTest {
         var req = new AporteRequest("AF-INEXISTENTE", new BigDecimal("100000.00"), "APP_MOVIL",
                 "550e8400-e29b-41d4-a716-446655440004");
 
-        assertThrows(IllegalArgumentException.class, () -> service.registrar(req));
+        assertThrows(AfiliadoNotFoundException.class, () -> service.registrar(req));
     }
 }

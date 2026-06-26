@@ -239,6 +239,67 @@ estén en el historial.
 
 ---
 
+## Prompt N° 4 — Arquitectura de Excepciones y Seguridad de Entornos (Fase 4)
+
+### Propósito
+Implementar la jerarquía de excepciones de dominio con manejo global HTTP semántico y aislar la consola H2 al perfil de desarrollo, cerrando todos los hallazgos de Arquitectura y Calidad restantes.
+
+### Prompt completo utilizado
+
+```
+Actúa como nuestro Tech Lead Senior. Vamos a proceder con la FASE 4 (y última) de la
+refactorización de "reto-a", enfocándonos en la Arquitectura de Excepciones y Seguridad
+de Entornos.
+
+Por favor, implementa los siguientes cambios:
+
+1. Manejo Global de Excepciones (Hallazgo N° 12):
+   - Crea un paquete exception y define excepciones personalizadas de negocio que
+     extiendan de RuntimeException:
+     * AfiliadoNotFoundException
+     * TopeMensualExcedidoException
+     * AporteDuplicadoException
+   - Reemplaza los IllegalArgumentException de AporteService.java por estas nuevas
+     excepciones según corresponda.
+   - Crea una clase @RestControllerAdvice (GlobalExceptionHandler) para interceptar
+     estas excepciones y retornar respuestas HTTP con los códigos de estado semánticos:
+     * AfiliadoNotFoundException -> HTTP 404
+     * TopeMensualExcedidoException -> HTTP 422
+     * AporteDuplicadoException -> HTTP 409
+
+2. Aislamiento de Infraestructura (Hallazgo N° 13):
+   - Modifica application.properties base para asegurar spring.h2.console.enabled=false.
+   - Crea application-dev.properties para activar spring.h2.console.enabled=true
+     únicamente bajo el perfil de desarrollo local.
+
+3. Documentación Final:
+   - Actualiza la bitácora del README.md marcando las Fases 3 y 4 como completadas
+     al 100% y el archivo PROMPTS.md.
+
+REGLA DE COMMIT: refactor(reto-a): implementar controller advice para excepciones de
+dominio y aislar consola h2
+
+Al finalizar este commit, haz un git push de todos los cambios locales.
+```
+
+### Decisiones de diseño del prompt
+
+| Decisión | Justificación |
+|---|---|
+| **Tres excepciones de dominio específicas** (sin una base común) | Cada excepción mapea a un código HTTP distinto y representa un concepto de negocio independiente. Una jerarquía de herencia común (`DomainException`) es sobre-ingeniería para 3 tipos — el handler ya actúa como pivote. |
+| **`@RestControllerAdvice` en vez de `@ControllerAdvice`** | El módulo es una API REST — las respuestas son JSON, no vistas. `@RestControllerAdvice` combina `@ControllerAdvice` + `@ResponseBody` implícitamente. |
+| **HTTP 409 para `AporteDuplicadoException`** | El 409 Conflict es semánticamente más correcto que 422 para idempotencia: el recurso ya existe en el servidor y la request actual entra en conflicto con él. El 200 con el recurso existente requeriría una query adicional para retornar el aporte original — aplazado a un refactor de idempotencia transparente. |
+| **Handler de `Exception.class` como catch-all → 500** | Garantiza que ninguna excepción no manejada exponga un stack trace al cliente. El mensaje retornado es genérico para no filtrar detalles internos. |
+| **`application-dev.properties` con perfil `dev`** | Spring Boot carga automáticamente `application-{profile}.properties` cuando el perfil está activo. El evaluador activa la consola H2 con `--spring.profiles.active=dev` en el arranque sin modificar el `application.properties` base. |
+
+### Commits producidos
+
+```
+<hash>  refactor(reto-a): implementar controller advice para excepciones de dominio y aislar consola h2
+```
+
+---
+
 ## Notas de razonamiento adicionales
 
 ### Por qué se usó `@Column(precision = 19, scale = 2)` y no solo `BigDecimal`
