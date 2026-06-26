@@ -1,18 +1,8 @@
 import { useState } from 'react'
 import { consultarConsolidado } from '../api/aportesApi'
 
-/**
- * TODO (candidato): implementar la vista de consolidado de aportes.
- *
- * Campos de búsqueda:
- *   - afiliadoId (texto)
- *   - periodoDesde (formato YYYY-MM)
- *   - periodoHasta (formato YYYY-MM)
- *
- * Resultado esperado:
- *   - Total aportado en el periodo
- *   - Tabla con el detalle de cada aporte (fecha, monto, canal, marcadaRevision)
- */
+const mesActual = new Date().toISOString().slice(0, 7)
+
 export default function ConsolidadoAportes() {
   const [filtros, setFiltros] = useState({ afiliadoId: '', periodoDesde: '', periodoHasta: '' })
   const [consolidado, setConsolidado] = useState(null)
@@ -21,6 +11,10 @@ export default function ConsolidadoAportes() {
 
   async function handleBuscar(e) {
     e.preventDefault()
+    if (filtros.periodoDesde > filtros.periodoHasta) {
+      setError('El periodo "desde" no puede ser posterior al periodo "hasta".')
+      return
+    }
     setError(null)
     setConsolidado(null)
     setCargando(true)
@@ -37,84 +31,95 @@ export default function ConsolidadoAportes() {
 
   return (
     <div>
-      <h2 style={{ fontSize: 18, marginBottom: 16 }}>Consolidado de aportes</h2>
+      <h2>Consolidado de aportes</h2>
 
-      <form onSubmit={handleBuscar} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 24 }}>
-        <label>
-          ID Afiliado
+      <form onSubmit={handleBuscar} className="form-row" style={{ marginBottom: 24 }}>
+        <div className="field">
+          <label>ID Afiliado</label>
           <input
             value={filtros.afiliadoId}
-            onChange={e => setFiltros(f => ({ ...f, afiliadoId: e.target.value }))}
+            onChange={e => setFiltros(f => ({ ...f, afiliadoId: e.target.value.toUpperCase() }))}
             placeholder="AF-001"
             required
-            style={{ display: 'block', marginTop: 4 }}
           />
-        </label>
+        </div>
 
-        <label>
-          Periodo desde (YYYY-MM)
+        <div className="field">
+          <label>Periodo desde</label>
           <input
+            type="month"
             value={filtros.periodoDesde}
             onChange={e => setFiltros(f => ({ ...f, periodoDesde: e.target.value }))}
-            placeholder="2025-01"
-            pattern="\d{4}-\d{2}"
+            max={filtros.periodoHasta || mesActual}
             required
-            style={{ display: 'block', marginTop: 4 }}
           />
-        </label>
+        </div>
 
-        <label>
-          Periodo hasta (YYYY-MM)
+        <div className="field">
+          <label>Periodo hasta</label>
           <input
+            type="month"
             value={filtros.periodoHasta}
             onChange={e => setFiltros(f => ({ ...f, periodoHasta: e.target.value }))}
-            placeholder="2025-06"
-            pattern="\d{4}-\d{2}"
+            min={filtros.periodoDesde}
+            max={mesActual}
             required
-            style={{ display: 'block', marginTop: 4 }}
           />
-        </label>
+        </div>
 
-        <button type="submit" disabled={cargando}>
+        <button type="submit" className="btn-primary" disabled={cargando}>
           {cargando ? 'Consultando...' : 'Consultar'}
         </button>
       </form>
 
-      {error && <p style={{ color: 'red' }}>Error: {error}</p>}
+      {error && (
+        <div className="alert alert-error">
+          <span>✕</span>
+          <span>{error}</span>
+        </div>
+      )}
 
       {consolidado && (
         <div>
-          <p><strong>Total aportado:</strong> {consolidado.totalAportado?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</p>
+          <div className="result-header">
+            <span>Total aportado en el periodo:</span>
+            <span className="stat-chip">
+              {consolidado.totalAportado?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+            </span>
+          </div>
 
           {consolidado.detalle?.length > 0 ? (
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12 }}>
+            <table className="data-table">
               <thead>
-                <tr style={{ background: '#eee' }}>
-                  <th style={th}>Fecha</th>
-                  <th style={th}>Monto</th>
-                  <th style={th}>Canal</th>
-                  <th style={th}>Revisión</th>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Monto (COP)</th>
+                  <th>Canal</th>
+                  <th>Revisión</th>
                 </tr>
               </thead>
               <tbody>
                 {consolidado.detalle.map(a => (
                   <tr key={a.id}>
-                    <td style={td}>{a.fecha}</td>
-                    <td style={td}>{a.monto?.toLocaleString('es-CO')}</td>
-                    <td style={td}>{a.canal}</td>
-                    <td style={td}>{a.marcadaRevision ? 'Sí' : 'No'}</td>
+                    <td>{a.fecha}</td>
+                    <td>{a.monto?.toLocaleString('es-CO')}</td>
+                    <td>{a.canal}</td>
+                    <td>
+                      <span className={`badge ${a.marcadaRevision ? 'badge-yes' : 'badge-no'}`}>
+                        {a.marcadaRevision ? 'Sí' : 'No'}
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           ) : (
-            <p>No se encontraron aportes en el periodo indicado.</p>
+            <p style={{ color: 'var(--color-muted)', fontSize: 14 }}>
+              No se encontraron aportes en el periodo indicado.
+            </p>
           )}
         </div>
       )}
     </div>
   )
 }
-
-const th = { padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #ccc' }
-const td = { padding: '8px 12px', borderBottom: '1px solid #eee' }

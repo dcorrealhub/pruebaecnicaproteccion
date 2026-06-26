@@ -18,6 +18,8 @@ public final class Aporte {
     private final boolean marcadaRevision;
     private final String idempotenciaKey;
 
+    // La validación vive en el constructor para que ninguna capa pueda construir
+    // un Aporte inválido, sin depender de frameworks externos.
     public Aporte(Long id,
                   String afiliadoId,
                   BigDecimal monto,
@@ -26,6 +28,10 @@ public final class Aporte {
                   String periodo,
                   boolean marcadaRevision,
                   String idempotenciaKey) {
+        // Invariante del dominio: un aporte con monto nulo o no positivo no tiene sentido de negocio.
+        if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El monto debe ser positivo");
+        }
         this.id = id;
         this.afiliadoId = afiliadoId;
         this.monto = monto;

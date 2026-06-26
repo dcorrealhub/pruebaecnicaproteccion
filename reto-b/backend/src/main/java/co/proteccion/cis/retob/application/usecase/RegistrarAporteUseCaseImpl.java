@@ -1,29 +1,25 @@
 package co.proteccion.cis.retob.application.usecase;
 
 import co.proteccion.cis.retob.domain.model.Aporte;
+import co.proteccion.cis.retob.domain.model.SaldoMensual;
 import co.proteccion.cis.retob.domain.port.in.RegistrarAporteUseCase;
 import co.proteccion.cis.retob.domain.port.out.AporteRepositoryPort;
 import co.proteccion.cis.retob.domain.port.out.SaldoRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
-/**
- * Implementación del caso de uso de registro de aportes.
- *
- * TODO (candidato): implementar la lógica de negocio:
- *   1. Verificar idempotencia: si ya existe un aporte con la misma idempotenciaKey, retornarlo.
- *   2. Validar monto positivo y que no supere el tope mensual del afiliado.
- *   3. Marcar para revisión si el monto supera {@code umbralRevision}.
- *   4. Actualizar el saldo mensual del afiliado de forma concurrentemente segura.
- *   5. Persistir el aporte y publicar el evento correspondiente.
- *   6. Envolver todo en una transacción (@Transactional).
- */
 @Service
 @RequiredArgsConstructor
 public class RegistrarAporteUseCaseImpl implements RegistrarAporteUseCase {
+
+    private static final DateTimeFormatter PERIODO_FMT = DateTimeFormatter.ofPattern("yyyy-MM");
 
     private final AporteRepositoryPort aporteRepository;
     private final SaldoRepositoryPort saldoRepository;
@@ -35,8 +31,52 @@ public class RegistrarAporteUseCaseImpl implements RegistrarAporteUseCase {
     private BigDecimal umbralRevision;
 
     @Override
+    @Transactional
     public Aporte registrar(RegistrarAporteCommand command) {
-        // TODO: implementar
-        throw new UnsupportedOperationException("Pendiente de implementación");
+        // Idempotencia: reintentos con la misma clave devuelven el aporte original sin duplicarlo.
+        Optional<Aporte> existente = aporteRepository.findByIdempotenciaKey(command.idempotenciaKey());
+        if (existente.isPresent()) {
+            return existente.get();
+        }
+
+        // Normalizar a mayúsculas para que "af-001" y "AF-001" sean el mismo afiliado en toda la capa.
+        String afiliadoId = command.afiliadoId().toUpperCase();
+
+        LocalDate hoy = LocalDate.now();
+        // El periodo en formato YYYY-MM sirve como clave del saldo mensual y para consultas por rango.
+        String periodo = hoy.format(PERIODO_FMT);
+
+        // Si es el primer aporte del afiliado en el mes, se crea el saldo en cero antes de acumular.
+        SaldoMensual saldo = saldoRepository.findByAfiliadoIdAndMes(afiliadoId, periodo)
+                .orElseGet(() -> saldoRepository.inicializar(afiliadoId, periodo));
+
+        // El tope se evalúa sobre el acumulado resultante, no solo sobre el monto del aporte.
+        BigDecimal nuevoTotal = saldo.calcularNuevoTotal(command.monto());
+        if (nuevoTotal.compareTo(topeMensual) > 0) {
+            throw new IllegalArgumentException(String.format(
+                    "El aporte supera el tope mensual de %,.0f COP. Acumulado actual: %,.0f COP",
+                    topeMensual, saldo.getTotal()));
+        }
+
+        // Un aporte que supera el umbral queda marcado para revisión manual posterior.
+        boolean marcadaRevision = command.monto().compareTo(umbralRevision) > 0;
+
+        // El @Version en SaldoMensualEntity lanza OptimisticLockException si dos transacciones
+        // concurrentes intentan actualizar el mismo saldo; la segunda debe reintentar.
+        saldoRepository.guardar(saldo.conTotal(nuevoTotal));
+
+        // id=null indica INSERT; el constructor valida que el monto sea positivo antes de persistir.
+        Aporte aporte = new Aporte(
+                null,
+                afiliadoId,
+                command.monto(),
+                hoy,
+                command.canal(),
+                periodo,
+                marcadaRevision,
+                command.idempotenciaKey()
+        );
+
+        return aporteRepository.guardar(aporte);
     }
 }
