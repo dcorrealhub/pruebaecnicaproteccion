@@ -27,6 +27,14 @@ export async function registrarAporte(data) {
  * @returns {Promise<object>} consolidado con total y detalle
  */
 export async function consultarConsolidado({ afiliadoId, periodoDesde, periodoHasta }) {
-  // TODO: implementar con fetch
-  throw new Error('consultarConsolidado: pendiente de implementación')
+  const params = new URLSearchParams({ afiliadoId, periodoDesde, periodoHasta })
+  const response = await fetch(`${BASE_URL}/consolidado?${params}`, {
+    method: 'GET',
+  })
+
+  if (!response.ok) {
+    throw new Error(`consultarConsolidado: error ${response.status}`)
+  }
+
+  return response.json()
 }
