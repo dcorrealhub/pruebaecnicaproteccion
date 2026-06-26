@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "hexagonal-architecture": {
+      "source": "affaan-m/everything-claude-code",
+      "sourceType": "github",
+      "skillPath": "skills/hexagonal-architecture/SKILL.md",
+      "computedHash": "a1a403e2af22c44ff4cbbf94a79a95d782f7a85bed0699460687ece42fc4aeaa"
+    },
+    "java-springboot": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/java-springboot/SKILL.md",
+      "computedHash": "f1b9c6b1277178fc33e5a612761c1cd1cf6ab5f946d05d69d52026d142c0a0c1"
+    }
+  }
+}

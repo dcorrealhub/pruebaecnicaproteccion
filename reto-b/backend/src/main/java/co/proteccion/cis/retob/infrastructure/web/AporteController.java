@@ -1,9 +1,7 @@
 package co.proteccion.cis.retob.infrastructure.web;
 
 import co.proteccion.cis.retob.domain.port.in.ConsultarAportesUseCase;
-import co.proteccion.cis.retob.domain.port.in.ConsultarAportesUseCase.ConsultarAportesQuery;
 import co.proteccion.cis.retob.domain.port.in.RegistrarAporteUseCase;
-import co.proteccion.cis.retob.domain.port.in.RegistrarAporteUseCase.RegistrarAporteCommand;
 import co.proteccion.cis.retob.infrastructure.web.dto.AporteResponse;
 import co.proteccion.cis.retob.infrastructure.web.dto.ConsolidadoResponse;
 import co.proteccion.cis.retob.infrastructure.web.dto.RegistrarAporteRequest;
@@ -23,13 +21,9 @@ public class AporteController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public AporteResponse registrar(@Valid @RequestBody RegistrarAporteRequest req) {
-        var command = new RegistrarAporteCommand(
-                req.afiliadoId(),
-                req.monto(),
-                req.canal(),
-                req.idempotenciaKey()
+        return AporteResponse.from(
+                registrarAporteUseCase.registrar(req.afiliadoId(), req.monto(), req.canal(), req.idempotenciaKey())
         );
-        return AporteResponse.from(registrarAporteUseCase.registrar(command));
     }
 
     @GetMapping("/consolidado")
@@ -37,7 +31,8 @@ public class AporteController {
             @RequestParam String afiliadoId,
             @RequestParam String periodoDesde,
             @RequestParam String periodoHasta) {
-        var query = new ConsultarAportesQuery(afiliadoId, periodoDesde, periodoHasta);
-        return ConsolidadoResponse.from(consultarAportesUseCase.consultar(query));
+        return ConsolidadoResponse.from(
+                consultarAportesUseCase.consultar(afiliadoId, periodoDesde, periodoHasta)
+        );
     }
 }
