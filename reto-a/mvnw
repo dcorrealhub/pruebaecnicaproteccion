@@ -4,6 +4,25 @@
 # Licensed under the Apache License, Version 2.0
 # See the NOTICE file at https://www.apache.org/licenses/LICENSE-2.0
 
+# ---------------------------------------------------------------------------
+# Maven Start Up Batch script
+# ---------------------------------------------------------------------------
+
+MAVEN_OPTS="$MAVEN_OPTS -Dmaven.multiModuleProjectDirectory=$MAVEN_PROJECTBASEDIR"
+
+# resolve program directory
+PRG="$0"
+while [ -h "$PRG" ]; do
+  ls=$(ls -ld "$PRG")
+  link=$(expr "$ls" : '.*-> \(.*\)$')
+  if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+  else
+    PRG=$(dirname "$PRG")/"$link"
+  fi
+done
+MAVEN_PROJECTBASEDIR=$(dirname "$PRG")
+
 if [ -z "$MAVEN_SKIP_RC" ]; then
   if [ -f /etc/mavenrc ]; then
     . /etc/mavenrc
@@ -27,7 +46,6 @@ esac
 if $cygwin; then
   [ -n "$MAVEN_HOME" ] && [ -d "$MAVEN_HOME" ] || export MAVEN_HOME="$(cd "$PWD"/.. && pwd)"
   [ -n "$MAVEN_HOME" ] && [ -d "$MAVEN_HOME" ] && export MAVEN_HOME
-  ;;
 fi
 
 # Determine the Java command to use to start the JVM.
@@ -44,22 +62,14 @@ if [ -z "$java_cmd" ]; then
 fi
 
 # Retrieve the Maven distribution wrapper jar if not present.
+MAVEN_WRAPPER_JAR="$MAVEN_PROJECTBASEDIR/.mvn/wrapper/maven-wrapper.jar"
 if [ ! -f "$MAVEN_WRAPPER_JAR" ]; then
-  if [ ! -f "$MAVEN_HOME/.mvn/wrapper/maven-wrapper.jar" ]; then
-    if [ -f "$PWD/.mvn/wrapper/maven-wrapper.jar" ]; then
-      MAVEN_WRAPPER_JAR="$PWD/.mvn/wrapper/maven-wrapper.jar"
-    else
-      echo "Wrapper jar not found. Please run 'mvn -N wrapper:wrapper' or download it manually." >&2
-      exit 1
-    fi
-  else
-    MAVEN_WRAPPER_JAR="$MAVEN_HOME/.mvn/wrapper/maven-wrapper.jar"
-  fi
-fi
-
-if [ -z "$MAVEN_WRAPPER_JAR" ]; then
-  echo "Wrapper jar not found." >&2
+  echo "Wrapper jar not found at $MAVEN_WRAPPER_JAR." >&2
   exit 1
 fi
 
-exec "$java_cmd" -classpath "$MAVEN_WRAPPER_JAR" org.apache.maven.wrapper.MavenWrapperMain "$@"
+exec "$java_cmd" \
+  $MAVEN_OPTS \
+  -classpath "$MAVEN_WRAPPER_JAR" \
+  "-Dmaven.multiModuleProjectDirectory=$MAVEN_PROJECTBASEDIR" \
+  org.apache.maven.wrapper.MavenWrapperMain "$@"
