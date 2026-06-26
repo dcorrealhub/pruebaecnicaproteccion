@@ -1,6 +1,8 @@
 package co.proteccion.cis.retob.infrastructure.web.dto;
 
 import co.proteccion.cis.retob.domain.model.Aporte;
+import co.proteccion.cis.retob.domain.model.CanalOrigen;
+import co.proteccion.cis.retob.domain.model.EstadoAporte;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -10,9 +12,9 @@ public record AporteResponse(
         String afiliadoId,
         BigDecimal monto,
         LocalDate fecha,
-        String canal,
+        CanalOrigen canal,
         String periodo,
-        boolean marcadaRevision
+        EstadoAporte estado
 ) {
     public static AporteResponse from(Aporte aporte) {
         return new AporteResponse(
@@ -22,7 +24,7 @@ public record AporteResponse(
                 aporte.getFecha(),
                 aporte.getCanal(),
                 aporte.getPeriodo(),
-                aporte.isMarcadaRevision()
+                aporte.getEstado()
         );
     }
 }
