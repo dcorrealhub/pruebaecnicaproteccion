@@ -26,4 +26,11 @@ public class AporteRequest {
     @Pattern(regexp = "^(APP_MOVIL|WEB|PRESENCIAL|ATM)$",
              message = "Canal no válido. Valores aceptados: APP_MOVIL, WEB, PRESENCIAL, ATM")
     private String canal;
+
+    @NotBlank(message = "El idempotencyKey es requerido")
+    @Pattern(
+        regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$",
+        message = "idempotencyKey debe ser un UUID v4 válido"
+    )
+    private String idempotencyKey;
 }

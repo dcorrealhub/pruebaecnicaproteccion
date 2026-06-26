@@ -157,6 +157,88 @@ Estas decisiones surgieron como respuesta a condiciones del entorno no anticipad
 
 ---
 
+## Prompt N° 3 — Concurrencia, Idempotencia y Transaccionalidad (Fase 3)
+
+### Propósito
+Implementar los mecanismos de integridad financiera que garantizan atomicidad, serialización de acceso concurrente al saldo y prevención de aportes duplicados.
+
+### Prompt completo utilizado
+
+```
+Actúa como nuestro Tech Lead Senior. Vamos a proceder con la FASE 3 del plan de
+refactorización en "reto-a", enfocándonos en Concurrencia, Idempotencia y
+Transaccionalidad bajo estándares de la SFC.
+
+Implementa los siguientes cambios en el código:
+
+1. Transaccionalidad y Orden de Persistencia (Hallazgos N° 6 y 14):
+   - Añade la anotación @Transactional(rollbackFor = Exception.class) al método registrar
+     en AporteService.java.
+   - Modifica el orden de ejecución: Primero guarda el objeto Aporte usando
+     aporteRepo.save(aporte) para que el motor asigne el ID, y luego crea y guarda el
+     EventoAporte referenciando correctamente el aporte ya persistido.
+
+2. Mitigación de Condición de Carrera (Hallazgo N° 3):
+   - En SaldoJpaRepository.java, declara un método de consulta explícito usando
+     bloqueo pesimista:
+     @Lock(LockModeType.PESSIMISTIC_WRITE)
+     @Query("SELECT s FROM Saldo s WHERE s.afiliadoId = :afiliadoId")
+     Optional<Saldo> findByAfiliadoIdForUpdate(@Param("afiliadoId") String afiliadoId);
+   - Modifica AporteService.java para que consuma este nuevo método al recuperar
+     el saldo, bloqueando la fila concurrentemente hasta el fin de la transacción.
+
+3. Mecanismo de Idempotencia (Hallazgo N° 5):
+   - Añade el campo private String idempotencyKey; en AporteRequest.java con
+     validaciones declarativas (@NotBlank y formato UUID).
+   - Añade el campo idempotencyKey a la entidad Aporte.java mapeado a una columna
+     UNIQUE y NOT NULL.
+   - En AporteService.registrar(), añade la validación previa: consulta al repositorio
+     si la llave ya existe. Si existe, lanza una excepción clara.
+
+4. Seguridad en Logs y Excepciones (Hallazgos N° 9 y 10):
+   - En AporteService.java, cambia el mensaje del orElseThrow() para que no concatene
+     el afiliadoId en el String del error que se expone al cliente (mensaje genérico).
+   - Ajusta el log INFO para que solo registre el id de la transacción/aporte y metadatos
+     no financieros; mueve los montos monetarios a nivel DEBUG.
+
+REGLA DE GIT ESTRICTA:
+Cuando verifiques que compila y los tests base pasan, realiza los commits de forma
+atómica usando la convención pactada:
+- "fix(reto-a): implementar transaccionalidad y locking pesimista contra condiciones de carrera"
+- "feat(reto-a): agregar llave de idempotencia en registro de aportes"
+
+Ejecuta la Fase 3, actualiza el checklist de tu README.md marcando estos puntos como
+completados y el listado de prompt en el PROMPTS.md, y avísame cuando los commits
+estén en el historial.
+```
+
+### Decisiones de diseño del prompt
+
+| Decisión | Justificación |
+|---|---|
+| **4 sub-tareas numeradas** con hallazgo de referencia | Vincula cada cambio de código a un hallazgo específico del AUDITORIA.md — el evaluador puede rastrear cada línea modificada hasta su causa auditada. |
+| **Locking pesimista explícito** (código literal en el prompt) | Elimina la ambigüedad entre estrategias (optimista `@Version` vs pesimista `@Lock`). El prompt incluye el código exacto del método para que el agente no interprete. |
+| **Transaccionalidad y locking en el mismo grupo** | La anotación `@Transactional` en el servicio es prerequisito para que `PESSIMISTIC_WRITE` funcione — sin la transacción el lock se libera inmediatamente. Agrupar los hallazgos N° 3 y 6 en el mismo punto evita que el agente cometa el error de implementarlos en commits separados sin verificar que ambos estén activos simultáneamente. |
+| **"llave ya existe, lanza una excepción clara"** (sin especificar el tipo) | Delega la decisión de qué tipo de excepción usar al agente, dado que la jerarquía de excepciones de dominio se implementará en Fase 4. El agente elige `IllegalStateException` con un mensaje descriptivo — temporal y reemplazable. |
+| **Regla de 2 commits** con mensajes exactos | Garantiza separación de intereses en el historial: transaccionalidad/locking (fix) vs idempotencia (feat) tienen diferentes vectores de cambio. Un solo commit mezclaría concurrencia con diseño de contrato. |
+
+### Decisiones tomadas durante la ejecución
+
+| Situación encontrada | Decisión tomada | Razonamiento |
+|---|---|---|
+| README.md tenía `@Version` (optimista) como item pendiente del Hallazgo N° 3 | Reemplazar el texto del item antes de marcarlo como completado | El texto del checklist debe reflejar la estrategia realmente implementada (pesimista), no la que estaba planificada originalmente (optimista). El evaluador leerá el README como referencia del proceso. |
+| `@AllArgsConstructor` en `AporteRequest` genera constructor de 4 args al añadir `idempotencyKey` | Actualizar los 4 tests con UUIDs v4 distintos | Breaking change predecible: al añadir un campo a un DTO con `@AllArgsConstructor`, todos los sitios que usen el all-args constructor deben actualizarse. Se usaron UUIDs distintos por test para evitar colisión en el constraint `UNIQUE`. |
+| El chequeo de idempotencia requiere una consulta DB antes de abrir la transacción de escritura | Colocar `existsByIdempotencyKey()` como primera instrucción del método (dentro de `@Transactional`) | El `SELECT` de idempotencia forma parte de la unidad de trabajo transaccional — si una transacción concurrente commitea la misma key entre el check y el insert, el constraint UNIQUE actúa como red de seguridad a nivel de DB. |
+
+### Commits producidos
+
+```
+<hash>  feat(reto-a): agregar llave de idempotencia en registro de aportes
+<hash>  fix(reto-a): implementar transaccionalidad y locking pesimista contra condiciones de carrera
+```
+
+---
+
 ## Notas de razonamiento adicionales
 
 ### Por qué se usó `@Column(precision = 19, scale = 2)` y no solo `BigDecimal`

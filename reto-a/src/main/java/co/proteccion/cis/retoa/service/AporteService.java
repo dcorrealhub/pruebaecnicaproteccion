@@ -36,6 +36,12 @@ public class AporteService {
 
     @Transactional(rollbackFor = Exception.class)
     public Aporte registrar(AporteRequest req) {
+        // Hallazgo N° 5: rechazar antes de cualquier operacion si la llave ya fue usada
+        if (aporteRepo.existsByIdempotencyKey(req.getIdempotencyKey())) {
+            throw new IllegalStateException(
+                "Aporte duplicado: llave de idempotencia ya utilizada");
+        }
+
         BigDecimal topeMensual    = new BigDecimal(topeMensualStr);
         BigDecimal umbralRevision = new BigDecimal(umbralRevisionStr);
         BigDecimal monto          = req.getMonto();
@@ -67,6 +73,7 @@ public class AporteService {
         aporte.setCanal(req.getCanal());
         aporte.setPeriodo(periodo);
         aporte.setMarcadaRevision(monto.compareTo(umbralRevision) > 0);
+        aporte.setIdempotencyKey(req.getIdempotencyKey());
 
         // Hallazgo N° 14: persistir aporte primero para obtener el ID antes de crear el evento
         Aporte saved = aporteRepo.save(aporte);

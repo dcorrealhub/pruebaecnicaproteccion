@@ -46,8 +46,8 @@ Estado del proceso de corrección de los hallazgos **Críticos** y **Altos** ide
 - [x] **[fix]** Eliminar `afiliadoId` del mensaje de excepción expuesto al cliente *(Hallazgo N° 9 — Alto)*
 - [x] **[fix]** Mover monto a nivel `DEBUG` en logs, INFO solo publica `aporteId`, `periodo` y `marcadaRevision` *(Hallazgo N° 10 — Alto)*
 
-> **Commit:** `fix(reto-a): implementar transaccionalidad y locking pesimista contra condiciones de carrera`
-> **Commit:** `feat(reto-a): agregar llave de idempotencia en registro de aportes`
+> **Commit 1:** `fix(reto-a): implementar transaccionalidad y locking pesimista contra condiciones de carrera`
+> **Commit 2:** `feat(reto-a): agregar llave de idempotencia en registro de aportes`
 
 ### Fase 4 — Arquitectura y Calidad *(Hallazgos N° 12, 13, 14, 15)*
 - [ ] **[refactor]** Crear jerarquía de excepciones de dominio + `@RestControllerAdvice` *(Hallazgo N° 12 — Medio)*

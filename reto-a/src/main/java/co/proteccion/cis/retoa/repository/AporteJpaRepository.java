@@ -8,4 +8,6 @@ import java.util.List;
 public interface AporteJpaRepository extends JpaRepository<Aporte, Long> {
 
     List<Aporte> findByAfiliadoIdAndPeriodo(String afiliadoId, String periodo);
+
+    boolean existsByIdempotencyKey(String idempotencyKey);
 }

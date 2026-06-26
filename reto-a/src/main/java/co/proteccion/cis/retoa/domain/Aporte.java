@@ -32,4 +32,7 @@ public class Aporte {
     private String periodo;
 
     private boolean marcadaRevision;
+
+    @Column(name = "idempotency_key", unique = true, nullable = false, length = 36)
+    private String idempotencyKey;
 }
