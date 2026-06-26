@@ -67,6 +67,11 @@ public class ParametrosController {
                     Inserta un nuevo registro en `historico_parametros`. El valor activo
                     pasa a ser este nuevo registro de forma inmediata — los siguientes aportes
                     usarán los nuevos topes sin necesidad de reiniciar el servicio.
+
+                    **Invariante requerida:** `montoMinimo` < `umbralRevision` < `topeMensual`
+                    - `montoMinimo`: valor mínimo que debe tener un aporte para ser aceptado
+                    - `umbralRevision`: aportes que superen este valor quedan en `EN_REVISION`
+                    - `topeMensual`: suma máxima que un afiliado puede aportar en un mes
                     """
     )
     @ApiResponses({

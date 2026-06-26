@@ -51,8 +51,9 @@ public class AporteController {
             @ApiResponse(responseCode = "400", description = "Datos inválidos",
                     content = @Content(schema = @Schema(example = "{\"error\":\"VALIDACION_FALLIDA\"}"))),
             @ApiResponse(responseCode = "404", description = "Afiliado no encontrado"),
-            @ApiResponse(responseCode = "422", description = "Tope mensual excedido"),
-            @ApiResponse(responseCode = "409", description = "Conflicto de concurrencia")
+            @ApiResponse(responseCode = "422", description = "Regla de negocio violada: tope mensual excedido, monto mínimo no alcanzado o afiliado bloqueado",
+                    content = @Content(schema = @Schema(example = "{\"error\":\"TOPE_MENSUAL_EXCEDIDO | MONTO_MINIMO_NO_ALCANZADO | AFILIADO_BLOQUEADO\",\"mensaje\":\"...\"}"))),
+            @ApiResponse(responseCode = "409", description = "Conflicto de concurrencia optimista")
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -84,11 +85,14 @@ public class AporteController {
                 new ConsultarAportesQuery(afiliadoId, periodoDesde, periodoHasta)));
     }
 
-    @Operation(summary = "Cambiar estado de un aporte",
+    @Operation(summary = "Cambiar estado de un aporte (operación de revisor)",
             description = """
-                    Transiciones válidas:
+                    Acción exclusiva del revisor/operador. Transiciones válidas:
                     - `PENDIENTE` → `EN_REVISION` o `APROBADO`
                     - `EN_REVISION` → `APROBADO` o `RECHAZADO`
+
+                    Al **RECHAZAR**, el cupo mensual del afiliado es liberado automáticamente.
+                    Para que el **afiliado** cancele su propio aporte use `PATCH /{id}/anular`.
                     """)
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Estado actualizado"),
