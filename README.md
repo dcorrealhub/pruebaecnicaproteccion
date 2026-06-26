@@ -6,6 +6,11 @@ link despliegue front: **https://reto-b-frontend-production.up.railway.app**
 
 link documentación back: **https://reto-b-backend-production.up.railway.app/swagger-ui/index.html**
 
+## Credenciales de prueba
+
+- **Usuario:** `cis-user`
+- **Contraseña:** `Cis-Pass`
+
 ## Entregables
 
 La carpeta [`entregables/`](entregables/) contiene los documentos de la prueba:
