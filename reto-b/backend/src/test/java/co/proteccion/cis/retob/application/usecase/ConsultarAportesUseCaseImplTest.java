@@ -69,6 +69,34 @@ class ConsultarAportesUseCaseImplTest {
         assertEquals(1, result.detalle().size());
     }
 
+    @Test
+    void consultar_conPeriodosInvertidos_intercambiaYRetornaResultado() {
+        var a1 = crearAporte(1L, "AF-001", "100000", "2026-03-01");
+        var queryInvertida = new ConsultarAportesQuery("AF-001", "2026-06", "2026-01");
+        when(aporteRepository.findByAfiliadoIdAndPeriodoBetween("AF-001", "2026-01", "2026-06"))
+                .thenReturn(List.of(a1));
+
+        var result = useCase.consultar(queryInvertida);
+
+        assertEquals("2026-01", result.periodoDesde());
+        assertEquals("2026-06", result.periodoHasta());
+        assertEquals(1, result.detalle().size());
+    }
+
+    @Test
+    void consultar_conAfiliadoNulo_lanzaExcepcion() {
+        var query = new ConsultarAportesQuery(null, "2026-01", "2026-06");
+
+        assertThrows(IllegalArgumentException.class, () -> useCase.consultar(query));
+    }
+
+    @Test
+    void consultar_conPeriodosNulos_lanzaExcepcion() {
+        var query = new ConsultarAportesQuery("AF-001", null, null);
+
+        assertThrows(IllegalArgumentException.class, () -> useCase.consultar(query));
+    }
+
     private Aporte crearAporte(Long id, String afiliadoId, String monto, String fecha) {
         return new Aporte(
                 id,

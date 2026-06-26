@@ -25,10 +25,25 @@ public class ConsultarAportesUseCaseImpl implements ConsultarAportesUseCase {
         log.info("Consultando consolidado: afiliadoId={}, periodoDesde={}, periodoHasta={}",
                 query.afiliadoId(), query.periodoDesde(), query.periodoHasta());
 
+        var afiliadoId = query.afiliadoId();
+        var desde = query.periodoDesde();
+        var hasta = query.periodoHasta();
+
+        if (afiliadoId == null || afiliadoId.isBlank()) {
+            throw new IllegalArgumentException("El afiliadoId es obligatorio");
+        }
+        if (desde == null || hasta == null || desde.isBlank() || hasta.isBlank()) {
+            throw new IllegalArgumentException("Los periodos desde y hasta son obligatorios");
+        }
+        if (desde.compareTo(hasta) > 0) {
+            log.warn("Periodos invertidos, intercambiando: desde={}, hasta={}", desde, hasta);
+            var temp = desde;
+            desde = hasta;
+            hasta = temp;
+        }
+
         List<Aporte> detalle = aporteRepository.findByAfiliadoIdAndPeriodoBetween(
-                query.afiliadoId(),
-                query.periodoDesde(),
-                query.periodoHasta()
+                afiliadoId, desde, hasta
         );
 
         BigDecimal total = detalle.stream()
@@ -36,14 +51,10 @@ public class ConsultarAportesUseCaseImpl implements ConsultarAportesUseCase {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         log.info("Consolidado encontrado: afiliadoId={}, total={}, cantidad={}",
-                query.afiliadoId(), total, detalle.size());
+                afiliadoId, total, detalle.size());
 
         return new ConsolidadoAportes(
-                query.afiliadoId(),
-                query.periodoDesde(),
-                query.periodoHasta(),
-                total,
-                detalle
+                afiliadoId, desde, hasta, total, detalle
         );
     }
 }
