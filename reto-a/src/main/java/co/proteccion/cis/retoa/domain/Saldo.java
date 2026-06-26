@@ -1,12 +1,16 @@
 package co.proteccion.cis.retoa.domain;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.math.BigDecimal;
 
 @Entity
-@Table(name = "saldo")
-@Data
+@Table(name = "saldo", uniqueConstraints = @UniqueConstraint(columnNames = {"afiliado_id", "mes"}))
+@Getter
+@Setter
 @NoArgsConstructor
 public class Saldo {
 
@@ -17,7 +21,7 @@ public class Saldo {
     private String afiliadoId;
 
     // Acumulado del mes en pesos colombianos
-    private double totalMes;
+    private BigDecimal totalMes;
 
     // Formato YYYY-MM
     private String mes;

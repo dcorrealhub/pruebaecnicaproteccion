@@ -11,9 +11,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -25,31 +29,38 @@ public class AporteService {
     private final EventoAporteJpaRepository eventoRepo;
 
     @Value("${aporte.tope-mensual:10000000}")
-    private double topeMensual;
+    private BigDecimal topeMensual;
 
     @Value("${aporte.umbral-revision:5000000}")
-    private double umbralRevision;
+    private BigDecimal umbralRevision;
 
+    @Transactional
     public Aporte registrar(AporteRequest req) {
-        double monto = req.getMonto();
+        BigDecimal monto = req.getMonto();
 
-        if (monto <= 0) {
+        if (monto.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("El monto debe ser positivo");
         }
 
-        Saldo s = saldoRepo.findByAfiliadoId(req.getAfiliadoId())
-                .orElseThrow(() -> new IllegalArgumentException("Afiliado no encontrado: " + req.getAfiliadoId()));
+        String periodo = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
 
-        double nuevo = s.getTotalMes() + monto;
+        Saldo s = saldoRepo.findByAfiliadoIdAndMes(req.getAfiliadoId(), periodo)
+                .orElseGet(() -> {
+                    Saldo nuevoSaldo = new Saldo();
+                    nuevoSaldo.setAfiliadoId(req.getAfiliadoId());
+                    nuevoSaldo.setMes(periodo);
+                    nuevoSaldo.setTotalMes(BigDecimal.ZERO);
+                    return saldoRepo.save(nuevoSaldo);
+                });
 
-        if (nuevo == topeMensual) {
+        BigDecimal nuevo = s.getTotalMes().add(monto);
+
+        if (nuevo.compareTo(topeMensual) > 0) {
             throw new IllegalArgumentException("El monto supera el tope mensual permitido");
         }
 
         s.setTotalMes(nuevo);
         saldoRepo.save(s);
-
-        String periodo = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
 
         Aporte aporte = new Aporte();
         aporte.setAfiliadoId(req.getAfiliadoId());
@@ -57,12 +68,21 @@ public class AporteService {
         aporte.setFecha(LocalDate.now());
         aporte.setCanal(req.getCanal());
         aporte.setPeriodo(periodo);
-        aporte.setMarcadaRevision(monto > umbralRevision);
+        aporte.setMarcadaRevision(monto.compareTo(umbralRevision) > 0);
 
-        eventoRepo.save(new EventoAporte(aporte));
+        EventoAporte evento = new EventoAporte();
+        evento.setAfiliadoId(aporte.getAfiliadoId());
+        evento.setMonto(aporte.getMonto());
+        evento.setTipo("APORTE_REGISTRADO");
+        evento.setFechaEvento(LocalDateTime.now());
+        eventoRepo.save(evento);
 
         log.info("Aporte registrado: monto={} afiliado={}", monto, req.getAfiliadoId());
 
         return aporteRepo.save(aporte);
+    }
+
+    public List<Aporte> obtenerConsolidado(String afiliadoId, String periodo) {
+        return aporteRepo.findByAfiliadoIdAndPeriodo(afiliadoId, periodo);
     }
 }

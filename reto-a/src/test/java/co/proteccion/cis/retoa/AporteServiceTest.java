@@ -6,10 +6,14 @@ import co.proteccion.cis.retoa.service.AporteService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@Transactional
 class AporteServiceTest {
 
     @Autowired
@@ -17,19 +21,18 @@ class AporteServiceTest {
 
     @Test
     void registrar_montoValido_retornaAporte() {
-        var req = new AporteRequest("AF-001", 500_000.0, "APP_MOVIL");
+        var req = new AporteRequest("AF-001", new BigDecimal("500000"), "APP_MOVIL");
 
         Aporte result = service.registrar(req);
 
         assertNotNull(result.getId());
-        assertEquals(500_000.0, result.getMonto());
+        assertEquals(new BigDecimal("500000"), result.getMonto());
         assertFalse(result.isMarcadaRevision());
     }
 
     @Test
     void registrar_montoSuperaUmbral_marcaRevision() {
-        // AF-002 parte de saldo 0; 6M > umbral de revision (5M)
-        var req = new AporteRequest("AF-002", 6_000_000.0, "WEB");
+        var req = new AporteRequest("AF-002", new BigDecimal("6000000"), "WEB");
 
         Aporte result = service.registrar(req);
 
@@ -38,15 +41,18 @@ class AporteServiceTest {
 
     @Test
     void registrar_montoNegativo_lanzaExcepcion() {
-        var req = new AporteRequest("AF-001", -100.0, "APP_MOVIL");
+        var req = new AporteRequest("AF-001", new BigDecimal("-100"), "APP_MOVIL");
 
         assertThrows(IllegalArgumentException.class, () -> service.registrar(req));
     }
 
     @Test
-    void registrar_afiliadoInexistente_lanzaExcepcion() {
-        var req = new AporteRequest("AF-INEXISTENTE", 100_000.0, "APP_MOVIL");
+    void registrar_afiliadoInexistente_creaSaldoYRegistra() {
+        var req = new AporteRequest("AF-INEXISTENTE", new BigDecimal("100000"), "APP_MOVIL");
 
-        assertThrows(IllegalArgumentException.class, () -> service.registrar(req));
+        Aporte result = service.registrar(req);
+
+        assertNotNull(result.getId());
+        assertEquals(new BigDecimal("100000"), result.getMonto());
     }
 }
