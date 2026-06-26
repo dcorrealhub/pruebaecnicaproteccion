@@ -200,7 +200,6 @@ System.out.println("Con BigDecimal: " + acumuladoBD);
 
 ![Swagger UI](docs/images/swagger-ui.png)
 
-> **Nota:** La imagen se añadirá una vez que la aplicación esté levantada y se tome el screenshot de la UI.
 
 La documentación OpenAPI 3.0 se genera automáticamente con SpringDoc y está disponible en:
 
