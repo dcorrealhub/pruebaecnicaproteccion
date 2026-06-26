@@ -4,9 +4,13 @@
 **Autor del MR:** Lucho Díaz  
 **Fecha:** 2026-06-26
 
+
+---
+CONTEXTO:
+Lucho Díaz es el desarrollador junior del equipo. Esta es la revisión de su MR para el módulo de registro de aportes voluntarios.
+
 ---
 
-Lucho Díaz es el desarrollador junior del equipo. Esta es la revisión de su MR para el módulo de registro de aportes voluntarios.
 
 
 
