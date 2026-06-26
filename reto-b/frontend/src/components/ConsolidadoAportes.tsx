@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { consultarConsolidado, ConsolidadoResponse } from '../api/aportesApi'
+import { consultarConsolidado } from '../api/aportesApi'
+import type { ConsolidadoResponse } from '../types/aportes'
 
 interface Filtros {
   afiliadoId: string

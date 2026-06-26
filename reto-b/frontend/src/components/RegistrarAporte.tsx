@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { registrarAporte, AporteResponse } from '../api/aportesApi'
+import { registrarAporte } from '../api/aportesApi'
+import type { AporteResponse } from '../types/aportes'
 
 interface FormState {
   afiliadoId: string
