@@ -6,8 +6,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.net.URI;
-
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -15,7 +13,6 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problem.setTitle("Regla de negocio violada");
-        problem.setType(URI.create("https://api.proteccion.co/errors/regla-negocio"));
         return problem;
     }
 
@@ -26,7 +23,6 @@ public class GlobalExceptionHandler {
                 .toList();
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, String.join(", ", mensajes));
         problem.setTitle("Error de validación");
-        problem.setType(URI.create("https://api.proteccion.co/errors/validacion"));
         return problem;
     }
 }
