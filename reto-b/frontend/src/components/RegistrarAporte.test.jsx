@@ -28,6 +28,22 @@ describe('<RegistrarAporte />', () => {
     expect(screen.getByText(/APROBADO/)).toBeInTheDocument()
     expect(screen.queryByText(/42/)).not.toBeInTheDocument()
     expect(screen.queryByText(/ID:/i)).not.toBeInTheDocument()
+
+    // Tras un aporte APROBADO, el formulario se limpia para el siguiente registro.
+    expect(screen.getByPlaceholderText('AF-001').value).toBe('')
+    expect(screen.getByRole('spinbutton').value).toBe('')
+  })
+
+  it('NO limpia el formulario si el aporte queda pendiente de revisión', async () => {
+    registrarAporte.mockResolvedValue({ id: 8, estado: 'PENDIENTE_REVISION', marcadaRevision: true })
+    const { container } = render(<RegistrarAporte />)
+    fireEvent.change(screen.getByPlaceholderText('AF-001'), { target: { value: 'AF-2' } })
+    fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '6000000' } })
+
+    fireEvent.submit(container.querySelector('form'))
+
+    await screen.findByText(/marcado para revisión/i)
+    expect(screen.getByPlaceholderText('AF-001').value).toBe('AF-2')
   })
 
   it('rechaza monto no positivo sin llamar a la API', async () => {
@@ -69,6 +85,9 @@ describe('<RegistrarAporte />', () => {
     fireEvent.submit(form)
     await waitFor(() => expect(registrarAporte).toHaveBeenCalledTimes(2))
     await screen.findByText(/Aporte registrado/i)
+
+    // Tras el éxito APROBADO el formulario se limpia: hay que volver a llenarlo.
+    llenarFormularioValido(container)
 
     // Envío 3: nueva operación -> clave distinta
     fireEvent.submit(form)

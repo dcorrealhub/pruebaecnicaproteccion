@@ -3,6 +3,8 @@ import { registrarAporte } from '../api/aportesApi'
 
 const CANALES = ['APP_MOVIL', 'WEB', 'SUCURSAL']
 
+const FORM_INICIAL = { afiliadoId: '', monto: '', fecha: '', canal: 'APP_MOVIL' }
+
 /**
  * Formulario de registro de aporte.
  *
@@ -11,7 +13,7 @@ const CANALES = ['APP_MOVIL', 'WEB', 'SUCURSAL']
  * crea aportes duplicados. Se regenera solo tras un registro exitoso.
  */
 export default function RegistrarAporte() {
-  const [form, setForm] = useState({ afiliadoId: '', monto: '', fecha: '', canal: 'APP_MOVIL' })
+  const [form, setForm] = useState(FORM_INICIAL)
   const [resultado, setResultado] = useState(null)
   const [error, setError] = useState(null)
   const [cargando, setCargando] = useState(false)
@@ -48,6 +50,9 @@ export default function RegistrarAporte() {
       })
       setResultado(data)
       idempotenciaKey.current = null // éxito: el próximo aporte usa una clave nueva
+      if (data.estado === 'APROBADO') {
+        setForm(FORM_INICIAL) // limpia los campos para cargar el siguiente aporte
+      }
     } catch (err) {
       setError(err.message)
     } finally {
