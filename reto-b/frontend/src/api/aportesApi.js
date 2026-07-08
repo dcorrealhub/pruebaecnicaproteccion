@@ -1,22 +1,24 @@
 const BASE_URL = '/api/aportes'
 
-/**
- * Registra un aporte voluntario.
- * @param {{ afiliadoId: string, monto: number, canal: string, idempotenciaKey: string }} data
- * @returns {Promise<object>} aporte creado
- */
 export async function registrarAporte(data) {
-  // TODO: implementar con fetch
-  // Recuerda: idempotenciaKey debe ser generado por el cliente (ej: crypto.randomUUID())
-  throw new Error('registrarAporte: pendiente de implementación')
+  const res = await fetch(BASE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) {
+    const msg = await res.text().catch(() => 'Error al registrar aporte')
+    throw new Error(msg)
+  }
+  return res.json()
 }
 
-/**
- * Consulta el consolidado de aportes de un afiliado en un periodo.
- * @param {{ afiliadoId: string, periodoDesde: string, periodoHasta: string }} params
- * @returns {Promise<object>} consolidado con total y detalle
- */
 export async function consultarConsolidado({ afiliadoId, periodoDesde, periodoHasta }) {
-  // TODO: implementar con fetch
-  throw new Error('consultarConsolidado: pendiente de implementación')
+  const params = new URLSearchParams({ afiliadoId, periodoDesde, periodoHasta })
+  const res = await fetch(`${BASE_URL}/consolidado?${params}`)
+  if (!res.ok) {
+    const msg = await res.text().catch(() => 'Error al consultar consolidado')
+    throw new Error(msg)
+  }
+  return res.json()
 }
