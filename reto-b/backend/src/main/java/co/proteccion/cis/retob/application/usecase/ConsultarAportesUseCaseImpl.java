@@ -11,10 +11,13 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class ConsultarAportesUseCaseImpl implements ConsultarAportesUseCase {
 
     private final AporteRepositoryPort aporteRepository;
+
+    public ConsultarAportesUseCaseImpl(AporteRepositoryPort aporteRepository) {
+        this.aporteRepository = aporteRepository;
+    }
 
     @Override
     @Transactional(readOnly = true)
