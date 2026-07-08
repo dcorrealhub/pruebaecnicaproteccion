@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: reto-b
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/reto_b
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: 8080
+
+aporte:
+  tope-mensual: 10000000
+  umbral-revision: 5000000
+
+logging:
+  level:
+    root: info
+    co.proteccion.cis.retob: debug
