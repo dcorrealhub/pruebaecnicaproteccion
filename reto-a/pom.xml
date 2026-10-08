@@ -23,6 +23,7 @@
     </properties>
 
     <dependencies>
+        <!-- H-009: no hay spring-boot-starter-security / oauth2-resource-server; endpoints sin autenticación ni autorización. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -33,6 +34,7 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
+        <!-- H-007: starter-jdbc solo se usa para ejecutar SQL desde el controller. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>

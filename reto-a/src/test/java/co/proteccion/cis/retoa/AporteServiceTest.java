@@ -9,6 +9,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// H-011: solo caminos felices; no cubre tope, saldo, concurrencia, idempotencia, controller ni corte de mes.
+// H-011: estado H2 compartido entre tests (saldo de AF-001 se muta sin limpieza) y H2 en vez de PostgreSQL.
 @SpringBootTest
 class AporteServiceTest {
 
