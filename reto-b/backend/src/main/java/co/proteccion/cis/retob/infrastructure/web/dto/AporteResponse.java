@@ -1,6 +1,7 @@
 package co.proteccion.cis.retob.infrastructure.web.dto;
 
 import co.proteccion.cis.retob.domain.model.Aporte;
+import co.proteccion.cis.retob.domain.model.enums.Canal;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -10,7 +11,7 @@ public record AporteResponse(
         String afiliadoId,
         BigDecimal monto,
         LocalDate fecha,
-        String canal,
+        Canal canal,
         String periodo,
         boolean marcadaRevision
 ) {
