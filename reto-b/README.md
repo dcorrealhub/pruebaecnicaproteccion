@@ -9,6 +9,13 @@ un frontend en **React 18 + Vite**, y el despliegue en **AWS** (CloudFront + S3 
   de revisión quedan marcados. Los aportes que violan una regla se rechazan con un mensaje claro.
 - **Consultar el consolidado** de un afiliado en un rango de periodos: total y detalle.
 
+## 🌐 Despliegue
+
+**URL:** https://dvzym4mq6ojoh.cloudfront.net
+
+> **Nota:** si la aplicación no carga, o carga pero no registra ni consulta aportes, es porque la máquina EC2 del
+> backend está apagada. El frontend se sirve desde S3 y CloudFront, pero la API necesita la instancia encendida.
+
 > Todos los datos son sintéticos. Las decisiones de diseño, los ajustes de requisito y los pendientes para producción
 > están en [NOTAS_PROCESO.md](NOTAS_PROCESO.md).
 
