@@ -18,18 +18,18 @@ un frontend en **React 18 + Vite**, y el despliegue en **AWS** (CloudFront + S3 
 
 ```mermaid
 flowchart LR
-    U([Navegador]) -- HTTPS --> CF[CloudFront]
-    CF -- "/*  · OAC" --> S3[(S3 privado<br/>frontend React)]
+    U([Navegador]) -- HTTPS --> CF["CloudFront"]
+    CF -- "/*  · OAC" --> S3[("S3 privado<br/>frontend React")]
     CF -- "/api/*  · HTTP :8080" --> EC2
 
-    subgraph EC2 [EC2 t3.small · Amazon Linux 2023]
-        API[Spring Boot<br/>servicio systemd]
-        DB[(PostgreSQL 15<br/>Docker)]
+    subgraph EC2 ["EC2 t3.small · Amazon Linux 2023"]
+        API["Spring Boot<br/>servicio systemd"]
+        DB[("PostgreSQL 15<br/>Docker")]
         API -- JDBC --> DB
     end
 
-    S3A[(S3 privado<br/>artefactos .jar)] -. "s3:GetObject al arrancar" .-> EC2
-    SSM[SSM Session Manager] -. administración .-> EC2
+    S3A[("S3 privado<br/>artefactos .jar")] -. "s3:GetObject al arrancar" .-> EC2
+    SSM["SSM Session Manager"] -. administración .-> EC2
 ```
 
 - **Un solo dominio** de CloudFront sirve el frontend y la API. El frontend llama a la ruta relativa `/api`, así que no
@@ -47,30 +47,30 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    subgraph INFRA_IN [infrastructure · entrada]
-        C[AporteController<br/>REST /api/aportes]
-        H[GlobalExceptionHandler<br/>ProblemDetail RFC 7807]
+    subgraph INFRA_IN ["infrastructure · entrada"]
+        C["AporteController<br/>REST /api/aportes"]
+        H["GlobalExceptionHandler<br/>ProblemDetail RFC 7807"]
     end
 
-    subgraph APP [application]
-        R[RegistrarAporteUseCaseImpl<br/>@Transactional]
-        Q[ConsultarAportesUseCaseImpl<br/>@Transactional readOnly]
+    subgraph APP ["application"]
+        R["RegistrarAporteUseCaseImpl<br/>@Transactional"]
+        Q["ConsultarAportesUseCaseImpl<br/>@Transactional readOnly"]
     end
 
-    subgraph DOM [domain · Java puro, sin Spring]
-        PIN[[port.in<br/>RegistrarAporteUseCase<br/>ConsultarAportesUseCase]]
-        POL[PoliticaAportes<br/>reglas de negocio]
-        MOD[model<br/>Aporte · SaldoMensual · Canal<br/>ParametrosAfiliado · ConsolidadoAportes]
-        EXC[exception<br/>ReglaNegocio · SolicitudInvalida<br/>ConflictoIdempotencia · ConflictoConcurrencia]
-        POUT[[port.out<br/>AporteRepositoryPort · SaldoRepositoryPort<br/>ParametrosAfiliadoRepositoryPort · EventoAporteRepositoryPort]]
+    subgraph DOM ["domain · Java puro, sin Spring"]
+        PIN[["port.in<br/>RegistrarAporteUseCase<br/>ConsultarAportesUseCase"]]
+        POL["PoliticaAportes<br/>reglas de negocio"]
+        MOD["model<br/>Aporte · SaldoMensual · Canal<br/>ParametrosAfiliado · ConsolidadoAportes"]
+        EXC["exception<br/>ReglaNegocio · SolicitudInvalida<br/>ConflictoIdempotencia · ConflictoConcurrencia"]
+        POUT[["port.out<br/>AporteRepositoryPort · SaldoRepositoryPort<br/>ParametrosAfiliadoRepositoryPort · EventoAporteRepositoryPort"]]
     end
 
-    subgraph INFRA_OUT [infrastructure · salida]
-        ADP[Adaptadores JPA<br/>+ Spring Data]
-        CFG[AporteConfig / AporteProperties<br/>parámetros validados al arrancar]
+    subgraph INFRA_OUT ["infrastructure · salida"]
+        ADP["Adaptadores JPA<br/>+ Spring Data"]
+        CFG["AporteConfig / AporteProperties<br/>parámetros validados al arrancar"]
     end
 
-    PG[(PostgreSQL<br/>Flyway V1…V4)]
+    PG[("PostgreSQL<br/>Flyway V1…V4")]
 
     C --> PIN
     R -. implementa .-> PIN
