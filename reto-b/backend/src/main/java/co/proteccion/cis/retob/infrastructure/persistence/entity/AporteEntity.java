@@ -1,5 +1,6 @@
 package co.proteccion.cis.retob.infrastructure.persistence.entity;
 
+import co.proteccion.cis.retob.domain.model.enums.Canal;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,8 +32,9 @@ public class AporteEntity {
     @Column(nullable = false)
     private LocalDate fecha;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
-    private String canal;
+    private Canal canal;
 
     @Column(nullable = false, length = 7)
     private String periodo;
