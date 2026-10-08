@@ -1,3 +1,14 @@
+error id: file:///C:/Users/Mariana.DESKTOP-GV675UP/Desktop/pruebaecnicaproteccion/reto-b/backend/src/main/java/co/proteccion/cis/retob/application/usecase/RegistrarAporteUseCaseImpl.java:_empty_/RegistrarAporteCommand#monto#
+file:///C:/Users/Mariana.DESKTOP-GV675UP/Desktop/pruebaecnicaproteccion/reto-b/backend/src/main/java/co/proteccion/cis/retob/application/usecase/RegistrarAporteUseCaseImpl.java
+empty definition using pc, found symbol in pc: _empty_/RegistrarAporteCommand#monto#
+empty definition using semanticdb
+empty definition using fallback
+non-local guesses:
+
+offset: 4937
+uri: file:///C:/Users/Mariana.DESKTOP-GV675UP/Desktop/pruebaecnicaproteccion/reto-b/backend/src/main/java/co/proteccion/cis/retob/application/usecase/RegistrarAporteUseCaseImpl.java
+text:
+```scala
 package co.proteccion.cis.retob.application.usecase;
 
 import co.proteccion.cis.retob.domain.model.Aporte;
@@ -5,6 +16,7 @@ import co.proteccion.cis.retob.domain.model.SaldoMensual;
 import co.proteccion.cis.retob.domain.port.in.RegistrarAporteUseCase;
 import co.proteccion.cis.retob.domain.port.out.AporteRepositoryPort;
 import co.proteccion.cis.retob.domain.port.out.SaldoRepositoryPort;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -28,7 +40,7 @@ import java.time.format.DateTimeFormatter;
  *   6. Envolver todo en una transacción (@Transactional).
  */
 @Service
-
+@RequiredArgsConstructor
 public class RegistrarAporteUseCaseImpl implements RegistrarAporteUseCase {
   
     private static final int MAX_REINTENTOS = 3;
@@ -105,7 +117,7 @@ public class RegistrarAporteUseCaseImpl implements RegistrarAporteUseCase {
        BigDecimal umbralAplicable = "SUCURSAL".equals(command.canal())
                 ? umbralRevisionSucursal
                 : umbralRevision;
-        boolean marcarRevision = command.monto().compareTo(umbralAplicable) > 0;
+        boolean marcarRevision = command.m@@onto().compareTo(umbralAplicable) > 0;
 
         Aporte nuevoAporte = new Aporte(
                 null,
@@ -122,3 +134,10 @@ public class RegistrarAporteUseCaseImpl implements RegistrarAporteUseCase {
         return aporteRepository.guardar(nuevoAporte);
     }
 }
+
+```
+
+
+#### Short summary: 
+
+empty definition using pc, found symbol in pc: _empty_/RegistrarAporteCommand#monto#

@@ -17,6 +17,7 @@ public final class Aporte {
     private final String periodo;        // formato YYYY-MM
     private final boolean marcadaRevision;
     private final String idempotenciaKey;
+    private final boolean yaExistia;
 
     public Aporte(Long id,
                   String afiliadoId,
@@ -25,7 +26,8 @@ public final class Aporte {
                   String canal,
                   String periodo,
                   boolean marcadaRevision,
-                  String idempotenciaKey) {
+                  String idempotenciaKey,
+                  boolean yaExistia) {
         this.id = id;
         this.afiliadoId = afiliadoId;
         this.monto = monto;
@@ -34,6 +36,7 @@ public final class Aporte {
         this.periodo = periodo;
         this.marcadaRevision = marcadaRevision;
         this.idempotenciaKey = idempotenciaKey;
+        this.yaExistia = yaExistia;
     }
 
     public Long getId()              { return id; }
@@ -44,4 +47,5 @@ public final class Aporte {
     public String getPeriodo()       { return periodo; }
     public boolean isMarcadaRevision() { return marcadaRevision; }
     public String getIdempotenciaKey() { return idempotenciaKey; }
+    public boolean isYaExistia()     { return yaExistia; }
 }

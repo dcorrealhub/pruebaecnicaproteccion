@@ -3,29 +3,27 @@ import RegistrarAporte from './components/RegistrarAporte'
 import ConsolidadoAportes from './components/ConsolidadoAportes'
 
 export default function App() {
-  const [vistaActiva, setVistaActiva] = useState('registrar')
+  // Último aporte registrado; seq cambia en cada registro para disparar el refresco
+  // del consolidado aunque se registre dos veces seguidas para el mismo afiliado.
+  const [ultimoRegistro, setUltimoRegistro] = useState(null)
+
+  function handleRegistrado(aporte) {
+    setUltimoRegistro(prev => ({ afiliadoId: aporte.afiliadoId, seq: (prev?.seq ?? 0) + 1 }))
+  }
 
   return (
-    <div style={{ fontFamily: 'sans-serif', maxWidth: 800, margin: '0 auto', padding: 24 }}>
-      <h1 style={{ fontSize: 22, marginBottom: 24 }}>Aportes Voluntarios</h1>
+    <>
+      <header className="header">
+        <div className="header__inner">
+          <h1>Aportes Voluntarios</h1>
+          <p>Registro y consulta del consolidado mensual por afiliado</p>
+        </div>
+      </header>
 
-      <nav style={{ marginBottom: 24, display: 'flex', gap: 12 }}>
-        <button
-          onClick={() => setVistaActiva('registrar')}
-          style={{ fontWeight: vistaActiva === 'registrar' ? 'bold' : 'normal' }}
-        >
-          Registrar aporte
-        </button>
-        <button
-          onClick={() => setVistaActiva('consolidado')}
-          style={{ fontWeight: vistaActiva === 'consolidado' ? 'bold' : 'normal' }}
-        >
-          Consolidado
-        </button>
-      </nav>
-
-      {vistaActiva === 'registrar' && <RegistrarAporte />}
-      {vistaActiva === 'consolidado' && <ConsolidadoAportes />}
-    </div>
+      <main className="main">
+        <RegistrarAporte onRegistrado={handleRegistrado} />
+        <ConsolidadoAportes ultimoRegistro={ultimoRegistro} />
+      </main>
+    </>
   )
 }
