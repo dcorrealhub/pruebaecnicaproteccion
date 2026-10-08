@@ -1,0 +1,4 @@
+# Los scripts se ejecutan en Linux (EC2, CI): deben conservar finales de línea LF aunque se editen en Windows
+*.sh   text eol=lf
+mvnw   text eol=lf
+*.cmd  text eol=crlf
