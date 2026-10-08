@@ -1,5 +1,7 @@
 package co.proteccion.cis.retob.domain.model;
 
+import co.proteccion.cis.retob.domain.model.enums.Canal;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -13,7 +15,7 @@ public final class Aporte {
     private final String afiliadoId;
     private final BigDecimal monto;
     private final LocalDate fecha;
-    private final String canal;
+    private final Canal canal;
     private final String periodo;        // formato YYYY-MM
     private final boolean marcadaRevision;
     private final String idempotenciaKey;
@@ -22,7 +24,7 @@ public final class Aporte {
                   String afiliadoId,
                   BigDecimal monto,
                   LocalDate fecha,
-                  String canal,
+                  Canal canal,
                   String periodo,
                   boolean marcadaRevision,
                   String idempotenciaKey) {
@@ -40,7 +42,7 @@ public final class Aporte {
     public String getAfiliadoId()    { return afiliadoId; }
     public BigDecimal getMonto()     { return monto; }
     public LocalDate getFecha()      { return fecha; }
-    public String getCanal()         { return canal; }
+    public Canal getCanal()          { return canal; }
     public String getPeriodo()       { return periodo; }
     public boolean isMarcadaRevision() { return marcadaRevision; }
     public String getIdempotenciaKey() { return idempotenciaKey; }
