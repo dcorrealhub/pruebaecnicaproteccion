@@ -55,76 +55,82 @@ export default function RegistrarAporte() {
   }
 
   return (
-    <div>
-      <h2 style={{ fontSize: 18, marginBottom: 16 }}>Registrar aporte</h2>
+    <section className="card">
+      <h2 className="card__titulo">Registrar aporte</h2>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 400 }}>
-        <label>
-          ID Afiliado (sintético)
+      <form onSubmit={handleSubmit} className="form">
+        <div className="campo">
+          <label className="campo__label" htmlFor="afiliadoId">ID Afiliado (sintético)</label>
           <input
+            id="afiliadoId"
+            className="input"
             value={form.afiliadoId}
             onChange={e => actualizar('afiliadoId', e.target.value)}
             placeholder="AF-001"
             required
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
           />
-        </label>
+        </div>
 
-        <label>
-          Monto (COP)
+        <div className="campo">
+          <label className="campo__label" htmlFor="monto">Monto (COP)</label>
           <input
+            id="monto"
+            className="input"
             type="number"
             min="0.01"
             step="0.01"
             value={form.monto}
             onChange={e => actualizar('monto', e.target.value)}
             required
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
           />
-        </label>
+        </div>
 
-        <label>
-          Fecha
+        <div className="campo">
+          <label className="campo__label" htmlFor="fecha">Fecha</label>
           <input
+            id="fecha"
+            className="input"
             type="date"
             max={HOY}
             value={form.fecha}
             onChange={e => actualizar('fecha', e.target.value)}
             required
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
           />
-        </label>
+        </div>
 
-        <label>
-          Canal
+        <div className="campo">
+          <label className="campo__label" htmlFor="canal">Canal</label>
           <select
+            id="canal"
+            className="select"
             value={form.canal}
             onChange={e => actualizar('canal', e.target.value)}
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
           >
             <option value="APP_MOVIL">App móvil</option>
             <option value="WEB">Web</option>
             <option value="SUCURSAL">Sucursal</option>
           </select>
-        </label>
+        </div>
 
-        <button type="submit" disabled={cargando}>
+        <button type="submit" className="btn btn--primario" disabled={cargando}>
           {cargando ? 'Registrando...' : 'Registrar'}
         </button>
       </form>
 
       {error && (
-        <p style={{ color: 'red', marginTop: 16 }} role="alert">Error: {error}</p>
+        <p className="alerta alerta--error" role="alert">Error: {error}</p>
       )}
 
       {resultado && (
-        <div style={{ marginTop: 16, padding: 12, background: '#f0f0f0' }}>
-          <p>Aporte registrado. ID: {resultado.id}</p>
+        <div className="alerta alerta--exito" role="status">
+          <p style={{ margin: 0 }}>Aporte registrado. ID: {resultado.id}</p>
           {resultado.marcadaRevision && (
-            <p style={{ color: '#b36b00' }}>Este aporte quedó marcado para revisión.</p>
+            <p className="alerta alerta--revision" style={{ marginBottom: 0 }}>
+              Este aporte quedó marcado para revisión.
+            </p>
           )}
         </div>
       )}
-    </div>
+    </section>
   )
 }

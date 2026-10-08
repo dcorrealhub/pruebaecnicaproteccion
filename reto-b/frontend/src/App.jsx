@@ -1,31 +1,45 @@
 import { useState } from 'react'
 import RegistrarAporte from './components/RegistrarAporte'
 import ConsolidadoAportes from './components/ConsolidadoAportes'
+import logoProteccion from './assets/logo_proteccion.png'
 
 export default function App() {
   const [vistaActiva, setVistaActiva] = useState('registrar')
 
   return (
-    <div style={{ fontFamily: 'sans-serif', maxWidth: 800, margin: '0 auto', padding: 24 }}>
-      <h1 style={{ fontSize: 22, marginBottom: 24 }}>Aportes Voluntarios</h1>
+    <>
+      <header className="app-header">
+        <div className="app-header__inner">
+          <img src={logoProteccion} alt="Protección" className="app-header__logo-img" />
+          <span className="app-header__sub">Aportes Voluntarios · CIS</span>
+        </div>
+      </header>
 
-      <nav style={{ marginBottom: 24, display: 'flex', gap: 12 }}>
-        <button
-          onClick={() => setVistaActiva('registrar')}
-          style={{ fontWeight: vistaActiva === 'registrar' ? 'bold' : 'normal' }}
-        >
-          Registrar aporte
-        </button>
-        <button
-          onClick={() => setVistaActiva('consolidado')}
-          style={{ fontWeight: vistaActiva === 'consolidado' ? 'bold' : 'normal' }}
-        >
-          Consolidado
-        </button>
-      </nav>
+      <main className="contenedor">
+        <h1 className="titulo-pagina">Aportes Voluntarios</h1>
 
-      {vistaActiva === 'registrar' && <RegistrarAporte />}
-      {vistaActiva === 'consolidado' && <ConsolidadoAportes />}
-    </div>
+        <nav className="tabs" role="tablist">
+          <button
+            role="tab"
+            aria-selected={vistaActiva === 'registrar'}
+            className={`tab ${vistaActiva === 'registrar' ? 'tab--activa' : ''}`}
+            onClick={() => setVistaActiva('registrar')}
+          >
+            Registrar aporte
+          </button>
+          <button
+            role="tab"
+            aria-selected={vistaActiva === 'consolidado'}
+            className={`tab ${vistaActiva === 'consolidado' ? 'tab--activa' : ''}`}
+            onClick={() => setVistaActiva('consolidado')}
+          >
+            Consolidado
+          </button>
+        </nav>
+
+        {vistaActiva === 'registrar' && <RegistrarAporte />}
+        {vistaActiva === 'consolidado' && <ConsolidadoAportes />}
+      </main>
+    </>
   )
 }

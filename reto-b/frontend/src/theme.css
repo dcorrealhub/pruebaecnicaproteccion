@@ -1,0 +1,301 @@
+/* Identidad visual inspirada en Protección: azul corporativo + acento amarillo-lima,
+   fondos claros, tarjetas blancas con bordes sutiles. */
+
+:root {
+  --azul: #0033a0;          /* azul corporativo (títulos, header, botones primarios) */
+  --azul-oscuro: #002360;   /* hover / énfasis */
+  --azul-claro: #e8eefb;    /* fondos suaves, filas alternas */
+  --lima: #c4d600;          /* acento de marca (CTA, barra superior, subrayados) */
+  --lima-oscuro: #acbd00;   /* hover del acento */
+
+  --texto: #1b1f29;
+  --texto-sutil: #5a6475;
+  --fondo: #f5f7fa;
+  --superficie: #ffffff;
+  --borde: #dde3ec;
+
+  --exito-bg: #e6f4ea;
+  --exito-fg: #1b6b36;
+  --error-bg: #fdecec;
+  --error-fg: #b3261e;
+  --revision-bg: #fff6e0;
+  --revision-fg: #8a5a00;
+
+  --radio: 10px;
+  --sombra: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --fuente: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--fuente);
+  color: var(--texto);
+  background: var(--fondo);
+  /* Banda superior de marca (línea amarillo-lima como en el sitio). */
+  border-top: 4px solid var(--lima);
+}
+
+/* ---- Header ---- */
+.app-header {
+  background: var(--superficie);
+  border-bottom: 1px solid var(--borde);
+  box-shadow: var(--sombra);
+}
+
+.app-header__inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-header__logo-img {
+  height: 36px;
+  width: auto;
+  display: block;
+}
+
+.app-header__sub {
+  font-size: 13px;
+  color: var(--texto-sutil);
+  border-left: 1px solid var(--borde);
+  padding-left: 12px;
+}
+
+/* ---- Layout ---- */
+.contenedor {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.titulo-pagina {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--azul);
+  margin: 8px 0 20px;
+}
+
+/* ---- Tabs de navegación ---- */
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--borde);
+  margin-bottom: 24px;
+}
+
+.tab {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 12px 18px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--texto-sutil);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tab:hover {
+  color: var(--azul);
+}
+
+.tab--activa {
+  color: var(--azul);
+  font-weight: 700;
+  border-bottom-color: var(--lima);
+}
+
+/* ---- Tarjeta ---- */
+.card {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  padding: 24px;
+}
+
+.card__titulo {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--azul);
+  margin: 0 0 20px;
+}
+
+/* ---- Formularios ---- */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 420px;
+}
+
+.form--fila {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  max-width: none;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.campo__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.input,
+.select {
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--texto);
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--azul);
+  box-shadow: 0 0 0 3px rgba(0, 51, 160, 0.15);
+}
+
+/* ---- Botones ---- */
+.btn {
+  padding: 11px 22px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.05s;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn--primario {
+  background: var(--azul);
+  color: #fff;
+}
+
+.btn--primario:hover:not(:disabled) {
+  background: var(--azul-oscuro);
+}
+
+.btn--acento {
+  background: var(--lima);
+  color: var(--azul-oscuro);
+}
+
+.btn--acento:hover:not(:disabled) {
+  background: var(--lima-oscuro);
+}
+
+/* ---- Mensajes ---- */
+.alerta {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.alerta--error {
+  background: var(--error-bg);
+  color: var(--error-fg);
+}
+
+.alerta--exito {
+  background: var(--exito-bg);
+  color: var(--exito-fg);
+}
+
+.alerta--revision {
+  background: var(--revision-bg);
+  color: var(--revision-fg);
+  margin-top: 8px;
+}
+
+/* ---- Tabla ---- */
+.resumen-total {
+  font-size: 16px;
+  margin: 4px 0 16px;
+}
+
+.resumen-total strong {
+  color: var(--azul);
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.tabla thead th {
+  text-align: left;
+  padding: 10px 12px;
+  background: var(--azul-claro);
+  color: var(--azul);
+  font-weight: 700;
+  border-bottom: 2px solid var(--borde);
+}
+
+.tabla tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--borde);
+}
+
+.tabla tbody tr:nth-child(even) {
+  background: #fafbfd;
+}
+
+.tabla .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Chip de estado de revisión */
+.chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.chip--si {
+  background: var(--revision-bg);
+  color: var(--revision-fg);
+}
+
+.chip--no {
+  background: var(--azul-claro);
+  color: var(--azul);
+}
+
+.vacio {
+  color: var(--texto-sutil);
+  font-style: italic;
+}
