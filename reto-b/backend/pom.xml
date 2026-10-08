@@ -16,10 +16,14 @@
     <artifactId>reto-b</artifactId>
     <version>1.0.0</version>
     <name>reto-b</name>
-    <description>Scaffold implementación aportes voluntarios — CIS Protección S.A.</description>
+    <description>API de registro y consulta de aportes voluntarios — CIS Protección S.A.</description>
 
     <properties>
         <java.version>21</java.version>
+        <!-- Versiones compatibles con JDK 25 (las de Spring Boot 3.4.1 no lo soportan) -->
+        <lombok.version>1.18.42</lombok.version>
+        <byte-buddy.version>1.17.8</byte-buddy.version>
+        <testcontainers.version>1.21.4</testcontainers.version>
     </properties>
 
     <dependencies>
@@ -72,10 +76,43 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Integración contra PostgreSQL real: H2 no reproduce el bloqueo de filas ni las restricciones igual -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- Desde JDK 23 el procesamiento de anotaciones no es implícito -->
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

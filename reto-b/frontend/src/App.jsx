@@ -2,30 +2,46 @@ import { useState } from 'react'
 import RegistrarAporte from './components/RegistrarAporte'
 import ConsolidadoAportes from './components/ConsolidadoAportes'
 
+const VISTAS = [
+  { id: 'registrar', etiqueta: 'Registrar aporte' },
+  { id: 'consolidado', etiqueta: 'Consolidado' },
+]
+
 export default function App() {
   const [vistaActiva, setVistaActiva] = useState('registrar')
 
   return (
-    <div style={{ fontFamily: 'sans-serif', maxWidth: 800, margin: '0 auto', padding: 24 }}>
-      <h1 style={{ fontSize: 22, marginBottom: 24 }}>Aportes Voluntarios</h1>
+    <>
+      <header className="app-header">
+        <div className="app-header__inner">
+          <div className="brand">
+            <div className="brand__logo" aria-hidden="true">A</div>
+            <div>
+              <h1 className="brand__title">Aportes Voluntarios</h1>
+              <p className="brand__subtitle">Fondo voluntario · entorno de prueba con datos sintéticos</p>
+            </div>
+          </div>
 
-      <nav style={{ marginBottom: 24, display: 'flex', gap: 12 }}>
-        <button
-          onClick={() => setVistaActiva('registrar')}
-          style={{ fontWeight: vistaActiva === 'registrar' ? 'bold' : 'normal' }}
-        >
-          Registrar aporte
-        </button>
-        <button
-          onClick={() => setVistaActiva('consolidado')}
-          style={{ fontWeight: vistaActiva === 'consolidado' ? 'bold' : 'normal' }}
-        >
-          Consolidado
-        </button>
-      </nav>
+          <nav className="tabs" role="tablist" aria-label="Secciones">
+            {VISTAS.map(v => (
+              <button
+                key={v.id}
+                role="tab"
+                className="tabs__btn"
+                aria-selected={vistaActiva === v.id}
+                onClick={() => setVistaActiva(v.id)}
+              >
+                {v.etiqueta}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </header>
 
-      {vistaActiva === 'registrar' && <RegistrarAporte />}
-      {vistaActiva === 'consolidado' && <ConsolidadoAportes />}
-    </div>
+      <main className="app-main">
+        {vistaActiva === 'registrar' && <RegistrarAporte />}
+        {vistaActiva === 'consolidado' && <ConsolidadoAportes />}
+      </main>
+    </>
   )
 }

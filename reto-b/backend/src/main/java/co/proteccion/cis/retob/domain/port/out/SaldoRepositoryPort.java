@@ -14,9 +14,14 @@ public interface SaldoRepositoryPort {
 
     /**
      * Persiste el saldo. Si el {@code version} no coincide con el almacenado,
-     * debe lanzar una excepción de conflicto de concurrencia.
+     * lanza {@link co.proteccion.cis.retob.domain.exception.ConflictoConcurrenciaException}.
      */
     SaldoMensual guardar(SaldoMensual saldo);
 
+    /**
+     * Crea el saldo del mes en cero. Si otra transacción lo creó en paralelo
+     * (restricción única afiliado+mes), lanza
+     * {@link co.proteccion.cis.retob.domain.exception.ConflictoConcurrenciaException}.
+     */
     SaldoMensual inicializar(String afiliadoId, String mes);
 }

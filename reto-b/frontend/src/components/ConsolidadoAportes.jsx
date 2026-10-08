@@ -1,17 +1,11 @@
 import { useState } from 'react'
 import { consultarConsolidado } from '../api/aportesApi'
+import { etiquetaCanal, formatearCOP } from '../formato'
+
+const PERIODO = /^\d{4}-(0[1-9]|1[0-2])$/
 
 /**
- * TODO (candidato): implementar la vista de consolidado de aportes.
- *
- * Campos de búsqueda:
- *   - afiliadoId (texto)
- *   - periodoDesde (formato YYYY-MM)
- *   - periodoHasta (formato YYYY-MM)
- *
- * Resultado esperado:
- *   - Total aportado en el periodo
- *   - Tabla con el detalle de cada aporte (fecha, monto, canal, marcadaRevision)
+ * Consulta del consolidado de aportes de un afiliado en un rango de periodos (inclusive).
  */
 export default function ConsolidadoAportes() {
   const [filtros, setFiltros] = useState({ afiliadoId: '', periodoDesde: '', periodoHasta: '' })
@@ -23,10 +17,25 @@ export default function ConsolidadoAportes() {
     e.preventDefault()
     setError(null)
     setConsolidado(null)
-    setCargando(true)
 
+    const { periodoDesde, periodoHasta } = filtros
+    if (!filtros.afiliadoId.trim()) {
+      setError('Ingresa el ID del afiliado')
+      return
+    }
+    if (!PERIODO.test(periodoDesde) || !PERIODO.test(periodoHasta)) {
+      setError('Los periodos deben tener formato YYYY-MM')
+      return
+    }
+    // YYYY-MM se ordena correctamente como texto
+    if (periodoDesde > periodoHasta) {
+      setError('El periodo desde no puede ser posterior al periodo hasta')
+      return
+    }
+
+    setCargando(true)
     try {
-      const data = await consultarConsolidado(filtros)
+      const data = await consultarConsolidado({ ...filtros, afiliadoId: filtros.afiliadoId.trim() })
       setConsolidado(data)
     } catch (err) {
       setError(err.message)
@@ -35,86 +44,134 @@ export default function ConsolidadoAportes() {
     }
   }
 
+  const detalle = consolidado?.detalle ?? []
+  const marcados = detalle.filter(a => a.marcadaRevision).length
+
   return (
-    <div>
-      <h2 style={{ fontSize: 18, marginBottom: 16 }}>Consolidado de aportes</h2>
+    <>
+      <section className="card">
+        <div className="card__header">
+          <h2 className="card__title">Consolidado de aportes</h2>
+          <p className="card__subtitle">Consulta el total y el detalle de los aportes de un afiliado en un rango de periodos.</p>
+        </div>
 
-      <form onSubmit={handleBuscar} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 24 }}>
-        <label>
-          ID Afiliado
-          <input
-            value={filtros.afiliadoId}
-            onChange={e => setFiltros(f => ({ ...f, afiliadoId: e.target.value }))}
-            placeholder="AF-001"
-            required
-            style={{ display: 'block', marginTop: 4 }}
-          />
-        </label>
+        <form onSubmit={handleBuscar} noValidate className="form-grid form-grid--filters">
+          <label className="field">
+            <span className="field__label">ID del afiliado</span>
+            <input
+              className="input"
+              value={filtros.afiliadoId}
+              onChange={e => setFiltros(f => ({ ...f, afiliadoId: e.target.value }))}
+              placeholder="AF-001"
+              maxLength={50}
+              autoComplete="off"
+            />
+          </label>
 
-        <label>
-          Periodo desde (YYYY-MM)
-          <input
-            value={filtros.periodoDesde}
-            onChange={e => setFiltros(f => ({ ...f, periodoDesde: e.target.value }))}
-            placeholder="2025-01"
-            pattern="\d{4}-\d{2}"
-            required
-            style={{ display: 'block', marginTop: 4 }}
-          />
-        </label>
+          <label className="field">
+            <span className="field__label">Desde</span>
+            <input
+              className="input"
+              type="month"
+              value={filtros.periodoDesde}
+              onChange={e => setFiltros(f => ({ ...f, periodoDesde: e.target.value }))}
+              placeholder="2026-01"
+            />
+          </label>
 
-        <label>
-          Periodo hasta (YYYY-MM)
-          <input
-            value={filtros.periodoHasta}
-            onChange={e => setFiltros(f => ({ ...f, periodoHasta: e.target.value }))}
-            placeholder="2025-06"
-            pattern="\d{4}-\d{2}"
-            required
-            style={{ display: 'block', marginTop: 4 }}
-          />
-        </label>
+          <label className="field">
+            <span className="field__label">Hasta</span>
+            <input
+              className="input"
+              type="month"
+              value={filtros.periodoHasta}
+              onChange={e => setFiltros(f => ({ ...f, periodoHasta: e.target.value }))}
+              placeholder="2026-06"
+            />
+          </label>
 
-        <button type="submit" disabled={cargando}>
-          {cargando ? 'Consultando...' : 'Consultar'}
-        </button>
-      </form>
+          <button type="submit" className="btn btn--primary" disabled={cargando}>
+            {cargando && <span className="spinner" aria-hidden="true" />}
+            {cargando ? 'Consultando…' : 'Consultar'}
+          </button>
+        </form>
 
-      {error && <p style={{ color: 'red' }}>Error: {error}</p>}
+        {error && (
+          <div role="alert" className="alert alert--error">
+            <span className="alert__icon" aria-hidden="true">!</span>
+            <div>
+              <p className="alert__title">No se pudo consultar</p>
+              <p className="alert__body">{error}</p>
+            </div>
+          </div>
+        )}
+      </section>
 
       {consolidado && (
-        <div>
-          <p><strong>Total aportado:</strong> {consolidado.totalAportado?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</p>
+        <section className="card">
+          <div className="card__header">
+            <h2 className="card__title">Afiliado {consolidado.afiliadoId}</h2>
+            <p className="card__subtitle">Periodo {consolidado.periodoDesde} a {consolidado.periodoHasta}</p>
+          </div>
 
-          {consolidado.detalle?.length > 0 ? (
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12 }}>
-              <thead>
-                <tr style={{ background: '#eee' }}>
-                  <th style={th}>Fecha</th>
-                  <th style={th}>Monto</th>
-                  <th style={th}>Canal</th>
-                  <th style={th}>Revisión</th>
-                </tr>
-              </thead>
-              <tbody>
-                {consolidado.detalle.map(a => (
-                  <tr key={a.id}>
-                    <td style={td}>{a.fecha}</td>
-                    <td style={td}>{a.monto?.toLocaleString('es-CO')}</td>
-                    <td style={td}>{a.canal}</td>
-                    <td style={td}>{a.marcadaRevision ? 'Sí' : 'No'}</td>
+          <div className="stats">
+            <div className="stat stat--primary">
+              <p className="stat__label">Total aportado</p>
+              <p className="stat__value">{formatearCOP(consolidado.totalAportado)}</p>
+            </div>
+            <div className="stat">
+              <p className="stat__label">Aportes</p>
+              <p className="stat__value">{detalle.length}</p>
+            </div>
+            <div className={`stat ${marcados > 0 ? 'stat--warning' : ''}`}>
+              <p className="stat__label">Pendientes de revisión</p>
+              <p className="stat__value">{marcados}</p>
+            </div>
+          </div>
+
+          {detalle.length > 0 ? (
+            <div className="table-wrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Periodo</th>
+                    <th>Canal</th>
+                    <th>Revisión</th>
+                    <th className="num">Monto</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {detalle.map(a => (
+                    <tr key={a.id}>
+                      <td>{a.fecha}</td>
+                      <td>{a.periodo}</td>
+                      <td><span className="badge badge--neutral">{etiquetaCanal(a.canal)}</span></td>
+                      <td>
+                        {a.marcadaRevision
+                          ? <span className="badge badge--warning">Pendiente</span>
+                          : <span className="badge badge--success">No requiere</span>}
+                      </td>
+                      <td className="num">{formatearCOP(a.monto)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colSpan={4}>Total</td>
+                    <td className="num">{formatearCOP(consolidado.totalAportado)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
           ) : (
-            <p>No se encontraron aportes en el periodo indicado.</p>
+            <div className="empty">
+              <p className="empty__title">Sin aportes en este periodo</p>
+              <p>Prueba con otro rango de meses o con otro afiliado.</p>
+            </div>
           )}
-        </div>
+        </section>
       )}
-    </div>
+    </>
   )
 }
-
-const th = { padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #ccc' }
-const td = { padding: '8px 12px', borderBottom: '1px solid #eee' }
