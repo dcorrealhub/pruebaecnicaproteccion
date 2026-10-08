@@ -13,6 +13,8 @@ public interface AporteRepositoryPort {
 
     Aporte guardar(Aporte aporte);
 
+    Optional<Aporte> findById(Long id);
+
     Optional<Aporte> findByIdempotenciaKey(String idempotenciaKey);
 
     List<Aporte> findByAfiliadoIdAndPeriodoBetween(String afiliadoId,

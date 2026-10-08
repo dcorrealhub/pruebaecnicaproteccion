@@ -1,40 +1,52 @@
 import { useState } from 'react'
 import { registrarAporte } from '../api/aportesApi'
 
+const HOY = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
+
+const ESTADO_INICIAL = { afiliadoId: '', monto: '', fecha: HOY, canal: 'APP_MOVIL' }
+
 /**
- * TODO (candidato): implementar el formulario de registro de aporte.
+ * Formulario de registro de aporte.
  *
- * Campos requeridos:
- *   - afiliadoId (texto, sintético — ej: "AF-001")
- *   - monto (número, positivo)
- *   - canal (selector: APP_MOVIL, WEB, SUCURSAL)
- *   - idempotenciaKey: generar automáticamente con crypto.randomUUID()
- *
- * Comportamiento esperado:
- *   - Validar monto > 0 antes de enviar
- *   - Mostrar mensaje de éxito o error según la respuesta
- *   - Si el aporte queda marcado para revisión, indicarlo claramente
+ * - La idempotenciaKey se genera en el cliente (dentro de aportesApi) con crypto.randomUUID().
+ * - El monto se envía como string para preservar precisión (ver aportesApi).
+ * - La fecha no puede ser futura (el backend también lo valida).
  */
 export default function RegistrarAporte() {
-  const [form, setForm] = useState({ afiliadoId: '', monto: '', canal: 'APP_MOVIL' })
+  const [form, setForm] = useState(ESTADO_INICIAL)
   const [resultado, setResultado] = useState(null)
   const [error, setError] = useState(null)
   const [cargando, setCargando] = useState(false)
+
+  function actualizar(campo, valor) {
+    setForm(f => ({ ...f, [campo]: valor }))
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
     setResultado(null)
-    setCargando(true)
 
+    const monto = Number(form.monto)
+    if (!(monto > 0)) {
+      setError('El monto debe ser mayor a cero.')
+      return
+    }
+    if (form.fecha > HOY) {
+      setError('La fecha del aporte no puede ser futura.')
+      return
+    }
+
+    setCargando(true)
     try {
-      // TODO: completar la llamada, incluir idempotenciaKey
       const data = await registrarAporte({
-        ...form,
-        monto: parseFloat(form.monto),
-        idempotenciaKey: crypto.randomUUID(),
+        afiliadoId: form.afiliadoId.trim(),
+        monto: form.monto,
+        fecha: form.fecha,
+        canal: form.canal,
       })
       setResultado(data)
+      setForm(ESTADO_INICIAL)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -51,7 +63,7 @@ export default function RegistrarAporte() {
           ID Afiliado (sintético)
           <input
             value={form.afiliadoId}
-            onChange={e => setForm(f => ({ ...f, afiliadoId: e.target.value }))}
+            onChange={e => actualizar('afiliadoId', e.target.value)}
             placeholder="AF-001"
             required
             style={{ display: 'block', width: '100%', marginTop: 4 }}
@@ -65,7 +77,19 @@ export default function RegistrarAporte() {
             min="0.01"
             step="0.01"
             value={form.monto}
-            onChange={e => setForm(f => ({ ...f, monto: e.target.value }))}
+            onChange={e => actualizar('monto', e.target.value)}
+            required
+            style={{ display: 'block', width: '100%', marginTop: 4 }}
+          />
+        </label>
+
+        <label>
+          Fecha
+          <input
+            type="date"
+            max={HOY}
+            value={form.fecha}
+            onChange={e => actualizar('fecha', e.target.value)}
             required
             style={{ display: 'block', width: '100%', marginTop: 4 }}
           />
@@ -75,7 +99,7 @@ export default function RegistrarAporte() {
           Canal
           <select
             value={form.canal}
-            onChange={e => setForm(f => ({ ...f, canal: e.target.value }))}
+            onChange={e => actualizar('canal', e.target.value)}
             style={{ display: 'block', width: '100%', marginTop: 4 }}
           >
             <option value="APP_MOVIL">App móvil</option>
@@ -90,14 +114,14 @@ export default function RegistrarAporte() {
       </form>
 
       {error && (
-        <p style={{ color: 'red', marginTop: 16 }}>Error: {error}</p>
+        <p style={{ color: 'red', marginTop: 16 }} role="alert">Error: {error}</p>
       )}
 
       {resultado && (
         <div style={{ marginTop: 16, padding: 12, background: '#f0f0f0' }}>
           <p>Aporte registrado. ID: {resultado.id}</p>
           {resultado.marcadaRevision && (
-            <p style={{ color: 'orange' }}>Este aporte quedó marcado para revisión.</p>
+            <p style={{ color: '#b36b00' }}>Este aporte quedó marcado para revisión.</p>
           )}
         </div>
       )}

@@ -1,5 +1,6 @@
 package co.proteccion.cis.retob.infrastructure.web;
 
+import co.proteccion.cis.retob.domain.model.Aporte;
 import co.proteccion.cis.retob.domain.port.in.ConsultarAportesUseCase;
 import co.proteccion.cis.retob.domain.port.in.ConsultarAportesUseCase.ConsultarAportesQuery;
 import co.proteccion.cis.retob.domain.port.in.RegistrarAporteUseCase;
@@ -8,28 +9,44 @@ import co.proteccion.cis.retob.infrastructure.web.dto.AporteResponse;
 import co.proteccion.cis.retob.infrastructure.web.dto.ConsolidadoResponse;
 import co.proteccion.cis.retob.infrastructure.web.dto.RegistrarAporteRequest;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("/api/aportes")
-@RequiredArgsConstructor
 public class AporteController {
 
     private final RegistrarAporteUseCase registrarAporteUseCase;
     private final ConsultarAportesUseCase consultarAportesUseCase;
 
+    public AporteController(RegistrarAporteUseCase registrarAporteUseCase,
+                            ConsultarAportesUseCase consultarAportesUseCase) {
+        this.registrarAporteUseCase = registrarAporteUseCase;
+        this.consultarAportesUseCase = consultarAportesUseCase;
+    }
+
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public AporteResponse registrar(@Valid @RequestBody RegistrarAporteRequest req) {
+    public ResponseEntity<AporteResponse> registrar(@Valid @RequestBody RegistrarAporteRequest req,
+                                                    UriComponentsBuilder uriBuilder) {
         var command = new RegistrarAporteCommand(
                 req.afiliadoId(),
                 req.monto(),
+                req.fecha(),
                 req.canal(),
                 req.idempotenciaKey()
         );
-        return AporteResponse.from(registrarAporteUseCase.registrar(command));
+        Aporte aporte = registrarAporteUseCase.registrar(command);
+
+        URI location = uriBuilder.path("/api/aportes/{id}").buildAndExpand(aporte.getId()).toUri();
+        return ResponseEntity.created(location).body(AporteResponse.from(aporte));
+    }
+
+    @GetMapping("/{id}")
+    public AporteResponse porId(@PathVariable Long id) {
+        return AporteResponse.from(consultarAportesUseCase.buscarPorId(id));
     }
 
     @GetMapping("/consolidado")

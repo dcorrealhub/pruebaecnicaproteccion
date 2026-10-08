@@ -1,6 +1,7 @@
 package co.proteccion.cis.retob.domain.model;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * Entidad de dominio: acumulado mensual de aportes por afiliado.
@@ -23,7 +24,7 @@ public final class SaldoMensual {
     }
 
     public BigDecimal calcularNuevoTotal(BigDecimal monto) {
-        return this.total.add(monto);
+        return this.total.add(monto).setScale(2, RoundingMode.HALF_EVEN);
     }
 
     public SaldoMensual conTotal(BigDecimal nuevoTotal) {

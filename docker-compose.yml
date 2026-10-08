@@ -16,5 +16,29 @@ services:
       timeout: 5s
       retries: 5
 
+  backend:
+    build:
+      context: ./reto-b/backend
+    container_name: proteccion_reto_backend
+    environment:
+      # Dentro de la red de compose la BD se resuelve por el nombre del servicio 'postgres'.
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/proteccion_reto
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./reto-b/frontend
+    container_name: proteccion_reto_frontend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:

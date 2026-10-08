@@ -2,41 +2,65 @@ package co.proteccion.cis.retob.infrastructure.persistence.adapter;
 
 import co.proteccion.cis.retob.domain.model.SaldoMensual;
 import co.proteccion.cis.retob.domain.port.out.SaldoRepositoryPort;
+import co.proteccion.cis.retob.infrastructure.persistence.entity.SaldoMensualEntity;
 import co.proteccion.cis.retob.infrastructure.persistence.repository.SpringDataSaldoRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Optional;
 
 /**
  * Adaptador JPA para el puerto de salida {@link SaldoRepositoryPort}.
  *
- * TODO (candidato): implementar los métodos.
- * Asegúrate de propagar {@link jakarta.persistence.OptimisticLockException}
- * correctamente para manejar conflictos de concurrencia.
+ * <p>El control de concurrencia es optimista: la entidad {@link SaldoMensualEntity} lleva
+ * {@code @Version}. Al guardar un saldo cuya versión no coincide con la almacenada, Hibernate
+ * lanza una {@link org.springframework.orm.ObjectOptimisticLockingFailureException}, que el
+ * caso de uso captura para reintentar.</p>
  */
 @Repository
-@RequiredArgsConstructor
 public class JpaSaldoRepositoryAdapter implements SaldoRepositoryPort {
 
     private final SpringDataSaldoRepository springDataRepo;
 
+    public JpaSaldoRepositoryAdapter(SpringDataSaldoRepository springDataRepo) {
+        this.springDataRepo = springDataRepo;
+    }
+
     @Override
     public Optional<SaldoMensual> findByAfiliadoIdAndMes(String afiliadoId, String mes) {
-        // TODO: buscar y mapear
-        throw new UnsupportedOperationException("Pendiente de implementación");
+        return springDataRepo.findByAfiliadoIdAndMes(afiliadoId, mes)
+                .map(this::aDominio);
     }
 
     @Override
     public SaldoMensual guardar(SaldoMensual saldo) {
-        // TODO: mapear SaldoMensual → SaldoMensualEntity, guardar, mapear de vuelta
-        throw new UnsupportedOperationException("Pendiente de implementación");
+        SaldoMensualEntity entity = new SaldoMensualEntity(
+                saldo.getId(),
+                saldo.getAfiliadoId(),
+                saldo.getMes(),
+                saldo.getTotal(),
+                saldo.getVersion());
+        return aDominio(springDataRepo.save(entity));
     }
 
     @Override
     public SaldoMensual inicializar(String afiliadoId, String mes) {
-        // TODO: crear un saldo con total=0 y persistirlo
-        throw new UnsupportedOperationException("Pendiente de implementación");
+        SaldoMensualEntity entity = new SaldoMensualEntity(
+                null,
+                afiliadoId,
+                mes,
+                BigDecimal.ZERO.setScale(2, RoundingMode.HALF_EVEN),
+                null);
+        return aDominio(springDataRepo.save(entity));
+    }
+
+    private SaldoMensual aDominio(SaldoMensualEntity entity) {
+        return new SaldoMensual(
+                entity.getId(),
+                entity.getAfiliadoId(),
+                entity.getMes(),
+                entity.getTotal(),
+                entity.getVersion());
     }
 }

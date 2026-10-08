@@ -20,6 +20,9 @@
 
     <properties>
         <java.version>21</java.version>
+        <!-- Byte Buddy >= 1.17 usa el Class File API y soporta JDKs nuevos (26) de forma
+             automática. Necesario para que Mockito pueda crear mocks bajo JDK 26. -->
+        <byte-buddy.version>1.18.1</byte-buddy.version>
     </properties>
 
     <dependencies>
@@ -54,12 +57,6 @@
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -79,14 +76,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
             </plugin>
         </plugins>
     </build>

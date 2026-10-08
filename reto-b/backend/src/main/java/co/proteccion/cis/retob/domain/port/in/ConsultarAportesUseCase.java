@@ -1,5 +1,6 @@
 package co.proteccion.cis.retob.domain.port.in;
 
+import co.proteccion.cis.retob.domain.model.Aporte;
 import co.proteccion.cis.retob.domain.model.ConsolidadoAportes;
 
 /**
@@ -15,6 +16,15 @@ public interface ConsultarAportesUseCase {
      * @return consolidado con total y detalle
      */
     ConsolidadoAportes consultar(ConsultarAportesQuery query);
+
+    /**
+     * Busca un aporte por su identificador.
+     *
+     * @param id identificador del aporte
+     * @return el aporte
+     * @throws co.proteccion.cis.retob.domain.exception.RecursoNoEncontradoException si no existe
+     */
+    Aporte buscarPorId(Long id);
 
     record ConsultarAportesQuery(
             String afiliadoId,

@@ -20,7 +20,7 @@ public record AporteResponse(
                 aporte.getAfiliadoId(),
                 aporte.getMonto(),
                 aporte.getFecha(),
-                aporte.getCanal(),
+                aporte.getCanal().name(),
                 aporte.getPeriodo(),
                 aporte.isMarcadaRevision()
         );
