@@ -1,10 +1,4 @@
-# Notas de proceso — Prompts usados (Reto A)
-
-> Registro del uso de IA como apoyo durante la auditoría de código del Reto A.
-> La IA se usó para contrastar hipótesis y dar estructura; el criterio, la
-> verificación y las decisiones son propias.
-
----
+# Prompts usados (Reto A)
 
 ## Prompt 1 — Apoyo en hallazgos + clasificación OWASP / CVSS
 
