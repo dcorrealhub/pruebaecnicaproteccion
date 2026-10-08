@@ -1,0 +1,79 @@
+# Reto B — entorno completo
+#   Aplicación: docker compose up -d --build      → front http://localhost:5173 · API http://localhost:8082
+#   Pruebas:    docker compose run --rm backend-tests
+# Nota: usa el puerto 5432 igual que el docker-compose.yml de la raíz; no levantar ambos a la vez.
+name: reto-b
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: proteccion_reto
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d proteccion_reto"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Base de datos efímera para las pruebas de integración (sin volumen persistente)
+  postgres-test:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: proteccion_reto_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d proteccion_reto_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      target: runtime
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/proteccion_reto
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+  # Ejecuta mvn test contra postgres-test. Perfil "tests": no arranca con "up".
+  backend-tests:
+    build:
+      context: ./backend
+      target: test
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-test:5432/proteccion_reto_test
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    profiles:
+      - tests
+
+volumes:
+  postgres_data:
