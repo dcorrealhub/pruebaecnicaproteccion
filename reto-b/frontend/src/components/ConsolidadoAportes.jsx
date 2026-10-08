@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { consultarConsolidado } from '../api/aportesApi'
 
 /**
- * TODO (candidato): implementar la vista de consolidado de aportes.
+ * Vista de consolidado de aportes.
  *
  * Campos de búsqueda:
  *   - afiliadoId (texto)
@@ -100,7 +100,7 @@ export default function ConsolidadoAportes() {
                 {consolidado.detalle.map(a => (
                   <tr key={a.id}>
                     <td style={td}>{a.fecha}</td>
-                    <td style={td}>{a.monto?.toLocaleString('es-CO')}</td>
+                    <td style={td}>{a.monto?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</td>
                     <td style={td}>{a.canal}</td>
                     <td style={td}>{a.marcadaRevision ? 'Sí' : 'No'}</td>
                   </tr>

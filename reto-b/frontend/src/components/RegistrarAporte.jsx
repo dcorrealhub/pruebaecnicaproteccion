@@ -1,40 +1,47 @@
 import { useState } from 'react'
 import { registrarAporte } from '../api/aportesApi'
 
+/** Fecha local de hoy en formato yyyy-MM-dd (el input date trabaja en hora local). */
+function hoy() {
+  const d = new Date()
+  const pad = n => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
 /**
- * TODO (candidato): implementar el formulario de registro de aporte.
+ * Formulario de registro de aporte.
  *
- * Campos requeridos:
- *   - afiliadoId (texto, sintético — ej: "AF-001")
- *   - monto (número, positivo)
- *   - canal (selector: APP_MOVIL, WEB, SUCURSAL)
- *   - idempotenciaKey: generar automáticamente con crypto.randomUUID()
- *
- * Comportamiento esperado:
- *   - Validar monto > 0 antes de enviar
- *   - Mostrar mensaje de éxito o error según la respuesta
- *   - Si el aporte queda marcado para revisión, indicarlo claramente
+ * Idempotencia: la clave se genera una vez por intento de formulario. Se conserva si el envío
+ * falla (un reintento no duplica el aporte) y se regenera tras un registro exitoso o cuando
+ * cambian los datos (es un aporte distinto).
  */
 export default function RegistrarAporte() {
-  const [form, setForm] = useState({ afiliadoId: '', monto: '', canal: 'APP_MOVIL' })
+  const [form, setForm] = useState({ afiliadoId: '', monto: '', fecha: hoy(), canal: 'APP_MOVIL' })
+  const [idempotenciaKey, setIdempotenciaKey] = useState(() => crypto.randomUUID())
   const [resultado, setResultado] = useState(null)
   const [error, setError] = useState(null)
   const [cargando, setCargando] = useState(false)
+
+  function actualizar(campo, valor) {
+    setForm(f => ({ ...f, [campo]: valor }))
+    setIdempotenciaKey(crypto.randomUUID())
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
     setResultado(null)
-    setCargando(true)
 
+    if (!(Number(form.monto) > 0)) {
+      setError('El monto debe ser mayor a cero')
+      return
+    }
+
+    setCargando(true)
     try {
-      // TODO: completar la llamada, incluir idempotenciaKey
-      const data = await registrarAporte({
-        ...form,
-        monto: parseFloat(form.monto),
-        idempotenciaKey: crypto.randomUUID(),
-      })
+      const data = await registrarAporte({ ...form, idempotenciaKey })
       setResultado(data)
+      setIdempotenciaKey(crypto.randomUUID())
     } catch (err) {
       setError(err.message)
     } finally {
@@ -51,8 +58,9 @@ export default function RegistrarAporte() {
           ID Afiliado (sintético)
           <input
             value={form.afiliadoId}
-            onChange={e => setForm(f => ({ ...f, afiliadoId: e.target.value }))}
+            onChange={e => actualizar('afiliadoId', e.target.value)}
             placeholder="AF-001"
+            maxLength={50}
             required
             style={{ display: 'block', width: '100%', marginTop: 4 }}
           />
@@ -65,7 +73,19 @@ export default function RegistrarAporte() {
             min="0.01"
             step="0.01"
             value={form.monto}
-            onChange={e => setForm(f => ({ ...f, monto: e.target.value }))}
+            onChange={e => actualizar('monto', e.target.value)}
+            required
+            style={{ display: 'block', width: '100%', marginTop: 4 }}
+          />
+        </label>
+
+        <label>
+          Fecha del aporte
+          <input
+            type="date"
+            value={form.fecha}
+            max={hoy()}
+            onChange={e => actualizar('fecha', e.target.value)}
             required
             style={{ display: 'block', width: '100%', marginTop: 4 }}
           />
@@ -75,7 +95,7 @@ export default function RegistrarAporte() {
           Canal
           <select
             value={form.canal}
-            onChange={e => setForm(f => ({ ...f, canal: e.target.value }))}
+            onChange={e => actualizar('canal', e.target.value)}
             style={{ display: 'block', width: '100%', marginTop: 4 }}
           >
             <option value="APP_MOVIL">App móvil</option>
@@ -95,8 +115,12 @@ export default function RegistrarAporte() {
 
       {resultado && (
         <div style={{ marginTop: 16, padding: 12, background: '#f0f0f0' }}>
-          <p>Aporte registrado. ID: {resultado.id}</p>
-          {resultado.marcadaRevision && (
+          <p>
+            {resultado.repetido
+              ? `Este aporte ya estaba registrado (reintento). ID: ${resultado.aporte.id}`
+              : `Aporte registrado. ID: ${resultado.aporte.id}`}
+          </p>
+          {resultado.aporte.marcadaRevision && (
             <p style={{ color: 'orange' }}>Este aporte quedó marcado para revisión.</p>
           )}
         </div>
